@@ -1,0 +1,3603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seller Studio · Christmas Card &amp; QR Builder (MIT)</title>
+  <style>
+    :root {
+      --bg: #0f141c;
+      --panel: #171f2c;
+      --panel-alt: #1e293b;
+      --border: #2e3c52;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --gold: #eab308;
+      --gold-soft: #fde047;
+      --crimson: #be123c;
+      --emerald: #10b981;
+      --radius: 12px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      background: #0b0f17;
+      border-bottom: 1px solid var(--border);
+      padding: 13px 22px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-badge {
+      background: linear-gradient(135deg, #be123c, #9f1239);
+      color: #fff;
+      font-weight: 800;
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.06em;
+    }
+    .brand h1 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--panel-alt);
+      color: var(--text);
+      padding: 9px 15px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      text-decoration: none;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .btn:hover {
+      background: #27354d;
+      border-color: #475d7d;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%);
+      color: #1c1202;
+      border-color: #fbbf24;
+      font-weight: 700;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      color: #fff;
+      border-color: #34d399;
+      font-weight: 700;
+    }
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(360px, 520px) 1fr;
+      flex: 1;
+      min-height: calc(100vh - 60px);
+    }
+    @media (max-width: 980px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+    .editor-pane {
+      border-right: 1px solid var(--border);
+      padding: 20px;
+      overflow-y: auto;
+      max-height: calc(100vh - 60px);
+    }
+    @media (max-width: 980px) {
+      .editor-pane {
+        max-height: none;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+    .card-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .card-box h2 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gold-soft);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .preset-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .preset-btn {
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 10px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+    }
+    .preset-btn:hover {
+      border-color: var(--gold);
+      background: #243046;
+    }
+    .field {
+      margin-bottom: 12px;
+    }
+    .field:last-child {
+      margin-bottom: 0;
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .field input[type="text"],
+    .field select,
+    .field textarea {
+      width: 100%;
+      background: #0d131d;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-size: 13.5px;
+      font-family: inherit;
+    }
+    .field textarea {
+      min-height: 76px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .toggle-line {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text);
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .memory-item {
+      background: #111824;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .memory-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #cbd5e1;
+    }
+    .remove-btn {
+      background: rgba(239, 68, 68, 0.14);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 11.5px;
+      cursor: pointer;
+    }
+    .upload-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+    .file-pill {
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #233149;
+      border: 1px solid #3c5278;
+      color: #e2e8f0;
+      padding: 6px 11px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .file-pill input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .mini-note {
+      font-size: 11.5px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    /* Right Preview Pane */
+    .preview-pane {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: radial-gradient(circle at 50% 20%, #1b2436 0%, #0d1118 80%);
+      overflow-y: auto;
+      max-height: calc(100vh - 60px);
+    }
+    @media (max-width: 980px) {
+      .preview-pane { max-height: none; }
+    }
+    .preview-tabs {
+      display: flex;
+      gap: 8px;
+      background: #0b0f17;
+      padding: 5px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      margin-bottom: 18px;
+    }
+    .tab-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 16px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      background: var(--panel-alt);
+      color: var(--gold-soft);
+    }
+    .phone-mockup {
+      width: min(410px, 94vw);
+      height: 740px;
+      background: #000;
+      border-radius: 36px;
+      padding: 11px;
+      box-shadow: 0 26px 65px rgba(0, 0, 0, 0.65), 0 0 0 2px #334155;
+      display: flex;
+      flex-direction: column;
+    }
+    .phone-mockup iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 26px;
+      background: #24060d;
+    }
+
+    /* QR & Canva Printable Card Panel */
+    .qr-studio-panel {
+      width: min(620px, 96vw);
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .qr-studio-panel.active {
+      display: flex;
+    }
+    .phone-panel.hidden {
+      display: none;
+    }
+    .url-preview-pill {
+      background: #090d14;
+      border: 1px solid #334155;
+      padding: 10px 13px;
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12.5px;
+      color: #38bdf8;
+      word-break: break-all;
+      margin-top: 6px;
+    }
+    .printable-preview-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    #giftCardCanvas {
+      width: min(360px, 86vw);
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.5);
+    }
+    .export-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #065f46;
+      border: 1px solid #34d399;
+      color: #fff;
+      padding: 11px 18px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 600;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 90;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Seller PIN Lock Screen (Protects your builder on public GitHub Pages) -->
+  <div id="pinLockOverlay" style="position:fixed;inset:0;z-index:200;background:radial-gradient(circle at 50% 25%, #1e293b 0%, #090d16 80%);display:flex;align-items:center;justify-content:center;padding:20px;">
+    <form id="pinForm" style="background:#151d2a;border:1px solid #334155;border-radius:16px;padding:28px 24px;width:min(360px,92vw);text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.65);">
+      <div style="font-size:34px;margin-bottom:8px;">🔒</div>
+      <h2 style="font-size:19px;margin-bottom:6px;color:#f8fafc;">Seller Studio Lock</h2>
+      <p style="font-size:13px;color:#94a3b8;margin-bottom:18px;">Enter your 4-digit Seller PIN to unlock the order &amp; QR builder.</p>
+      <input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off" style="width:100%;text-align:center;font-size:24px;letter-spacing:0.35em;padding:11px;border-radius:10px;border:1px solid #475569;background:#0b0f17;color:#fde047;margin-bottom:12px;" />
+      <p id="pinError" style="color:#f87171;font-size:12.5px;min-height:18px;margin-bottom:8px;"></p>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:11px;font-size:14px;">Unlock Studio →</button>
+    </form>
+  </div>
+  <script>
+    (function(){
+      // Seller PIN check (SHA-like simple obfuscated code for '2580' so casual view-source doesn't scream a word)
+      const EXPECTED_HASH = 1650280;
+      function codeHash(s) {
+        let h = 2166136261;
+        for (let i = 0; i < s.length; i++) {
+          h ^= s.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        return (h >>> 0) % 2000000;
+      }
+      const overlay = document.getElementById("pinLockOverlay");
+      if (sessionStorage.getItem("studio_unlocked") === "1") {
+        overlay.remove();
+        return;
+      }
+      document.getElementById("pinForm").addEventListener("submit", function(e){
+        e.preventDefault();
+        const val = document.getElementById("pinInput").value.trim();
+        if (codeHash(val) === EXPECTED_HASH) {
+          sessionStorage.setItem("studio_unlocked", "1");
+          overlay.remove();
+        } else {
+          document.getElementById("pinError").textContent = "Incorrect PIN. Please try again.";
+          document.getElementById("pinInput").value = "";
+        }
+      });
+    })();
+  </script>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-badge">SELLER STUDIO</span>
+      <h1>2-Minute Customer Card &amp; QR Gift Card Builder</h1>
+    </div>
+    <div class="top-actions">
+      <a class="btn" href="https://b47847241-eng.github.io/holiday-surprises/" target="_blank" rel="noopener">🎄 Open Live Demo</a>
+      <button id="refreshPreviewBtn" class="btn" type="button">↻ Refresh Preview</button>
+      <button id="copyHtmlTopBtn" class="btn btn-success" type="button">📋 Copy HTML (Mobile GitHub Paste)</button>
+      <button id="downloadHtmlTopBtn" class="btn btn-primary" type="button">⬇ Download index.html</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <!-- LEFT: ORDER CUSTOMIZATION FORM -->
+    <aside class="editor-pane">
+      <div class="card-box">
+        <h2>1. Quick Audience Presets</h2>
+        <div class="preset-row">
+          <button class="preset-btn" type="button" data-preset="couple">💑 Romantic Partner</button>
+          <button class="preset-btn" type="button" data-preset="family">👨‍👩‍👧‍👦 Parents &amp; Family</button>
+          <button class="preset-btn" type="button" data-preset="bestie">👯‍♀️ Best Friend</button>
+          <button class="preset-btn" type="button" data-preset="quick">🎁 $15 Scratch Reveal Only</button>
+        </div>
+      </div>
+
+      <div class="card-box">
+        <h2>2. Names, Theme &amp; Greeting</h2>
+        <div class="field">
+          <label for="themeSelect">Luxury Color Theme</label>
+          <select id="themeSelect">
+            <option value="velvet-gold">Velvet Crimson &amp; Champagne Gold (Classic)</option>
+            <option value="emerald-pine">Alpine Emerald Pine &amp; Gold</option>
+            <option value="midnight-starlight">Midnight Starlight Navy &amp; Silver-Gold</option>
+            <option value="winter-rose">Mulled Winter Rose &amp; Rose Gold</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="recipientName">Recipient Name (For)</label>
+            <input id="recipientName" type="text" value="Ama Mensah" />
+          </div>
+          <div class="field">
+            <label for="senderName">Sender Name (From)</label>
+            <input id="senderName" type="text" value="Kwame" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="envelopeKicker">Envelope Top Kicker</label>
+          <input id="envelopeKicker" type="text" value="Special Christmas Delivery · 2026" />
+        </div>
+        <div class="field">
+          <label for="heroTitle">Main Christmas Headline</label>
+          <input id="heroTitle" type="text" value="Merry Christmas, My Favorite Person" />
+        </div>
+        <div class="field">
+          <label for="heroSubtitle">Opening Subtitle</label>
+          <textarea id="heroSubtitle">Before 2026 wraps up, I wanted to gather my favorite memories with you—and hide a special Christmas surprise right inside.</textarea>
+        </div>
+      </div>
+
+      <div class="card-box">
+        <h2>3. "2026 Wrapped" Stat Highlights</h2>
+        <label class="toggle-line">
+          <input id="showStats" type="checkbox" checked />
+          Show 3 Highlight Stat Boxes
+        </label>
+        <div class="grid-3">
+          <div class="field">
+            <label>Stat 1 Number</label>
+            <input id="stat1Num" type="text" value="365" />
+            <input id="stat1Lbl" type="text" value="Days of Laughs Together" style="margin-top:5px;" />
+          </div>
+          <div class="field">
+            <label>Stat 2 Number</label>
+            <input id="stat2Num" type="text" value="100%" />
+            <input id="stat2Lbl" type="text" value="My Favorite Part of 2026" style="margin-top:5px;" />
+          </div>
+          <div class="field">
+            <label>Stat 3 Number</label>
+            <input id="stat3Num" type="text" value="∞" />
+            <input id="stat3Lbl" type="text" value="Wishes For Us in 2027" style="margin-top:5px;" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card-box">
+        <h2>
+          <span>4. Polaroid Memory Cards</span>
+          <button id="addMemoryBtn" class="btn" type="button" style="padding:4px 10px;font-size:12px;">+ Add Card</button>
+        </h2>
+        <label class="toggle-line">
+          <input id="showMemories" type="checkbox" checked />
+          Show Polaroid Photo Section
+        </label>
+        <p class="mini-note" style="margin-bottom:10px;">
+          Upload customer photos or framed Canva exports directly—each image is automatically resized &amp; embedded into your single <code>index.html</code> file so nothing breaks on GitHub!
+        </p>
+        <div id="memoriesList"></div>
+      </div>
+
+      <div class="card-box">
+        <h2>5. Gold Foil Scratch-Off Gift Reveal</h2>
+        <label class="toggle-line">
+          <input id="showScratchCard" type="checkbox" checked />
+          Include Interactive Gold Scratch-Off Ticket
+        </label>
+        <div class="grid-2">
+          <div class="field">
+            <label for="prizeEmoji">Icons / Emoji</label>
+            <input id="prizeEmoji" type="text" value="🥂✨🎁" />
+          </div>
+          <div class="field">
+            <label for="prizeCode">Voucher Tag / Pass Text</label>
+            <input id="prizeCode" type="text" value="CHRISTMAS VIP PASS · 2026" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="prizeHeadline">Hidden Gift Headline (Under Gold Foil)</label>
+          <input id="prizeHeadline" type="text" value="Christmas Dinner Date &amp; Gift Reveal!" />
+        </div>
+        <div class="field">
+          <label for="prizeDetails">Hidden Gift Details / Clue</label>
+          <textarea id="prizeDetails">Dress up on December 26 at 7:00 PM—dinner at your favorite spot is 100% on me, and check the envelope tucked under the tree!</textarea>
+        </div>
+      </div>
+
+      <div class="card-box">
+        <h2>6. Personal Keepsake Letter</h2>
+        <label class="toggle-line">
+          <input id="showLetter" type="checkbox" checked />
+          Include Personal Christmas Letter
+        </label>
+        <div class="grid-2">
+          <div class="field">
+            <label for="letterDate">Date Line</label>
+            <input id="letterDate" type="text" value="Christmas 2026" />
+          </div>
+          <div class="field">
+            <label for="letterSalutation">Greeting</label>
+            <input id="letterSalutation" type="text" value="Dearest Ama," />
+          </div>
+        </div>
+        <div class="field">
+          <label for="letterBody">Heartfelt Message</label>
+          <textarea id="letterBody" style="min-height:110px;">Looking back at 2026, the brightest part of every single month was sharing it with you. Thank you for your kindness, your patience, your infectious laugh, and the warmth you bring into every room.
+
+May this Christmas wrap you in peace, joy, and all the love you give so effortlessly to everyone around you. Here is to magic tonight and our best year yet in 2027.</textarea>
+        </div>
+        <div class="field">
+          <label for="letterSignoff">Sign-Off</label>
+          <input id="letterSignoff" type="text" value="With all my love, Kwame ♥" />
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT: LIVE INTERACTIVE PREVIEW & QR / CANVA CARD EXPORTER -->
+    <main class="preview-pane">
+      <div class="preview-tabs">
+        <button class="tab-btn active" type="button" data-tab="phone">📱 Live Phone Preview</button>
+        <button class="tab-btn" type="button" data-tab="qr">🖨️ GitHub Link + QR Gift Card (Canva)</button>
+      </div>
+
+      <!-- TAB 1: Interactive Phone Preview -->
+      <div id="phonePanel" class="phone-panel">
+        <div class="phone-mockup">
+          <iframe id="previewIframe" title="Interactive Christmas Card Preview"></iframe>
+        </div>
+      </div>
+
+      <!-- TAB 2: GitHub Pages Link + Scannable QR Code + Ready-to-Print Gift Card -->
+      <div id="qrPanel" class="qr-studio-panel">
+        <div class="card-box" style="margin-bottom:0;">
+          <h2>Step A · Customer's GitHub Pages Link</h2>
+          <div class="grid-3">
+            <div class="field">
+              <label for="ghUser">Your GitHub Username</label>
+              <input id="ghUser" type="text" value="b47847241-eng" />
+            </div>
+            <div class="field">
+              <label for="ghRepo">Repo Name</label>
+              <input id="ghRepo" type="text" value="holiday-surprises" />
+            </div>
+            <div class="field">
+              <label for="ghFolder">Customer Folder</label>
+              <input id="ghFolder" type="text" value="ama-kwame-84" />
+            </div>
+          </div>
+          <p class="mini-note">Upload the downloaded <code>index.html</code> into <code>&lt;Customer Folder&gt;/index.html</code> in your GitHub repo. It will go live at:</p>
+          <div id="liveUrlDisplay" class="url-preview-pill">https://b47847241-eng.github.io/holiday-surprises/ama-kwame-84/</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+            <button id="copyPathBtn" class="btn" type="button" style="font-size:12px;padding:7px 11px;">📋 1. Copy GitHub Filename (<code id="pathLabel">ama-kwame-84/index.html</code>)</button>
+            <button id="copyHtmlStepBtn" class="btn btn-success" type="button" style="font-size:12px;padding:7px 11px;">📋 2. Copy Full Customer HTML Code</button>
+            <button id="copyLiveUrlBtn" class="btn" type="button" style="font-size:12px;padding:7px 11px;">🔗 3. Copy Customer Link</button>
+          </div>
+        </div>
+
+        <div class="printable-preview-wrap">
+          <h3 style="font-size:15px;color:#fde047;">Step B · Scannable QR Code &amp; Printable Gift Card</h3>
+          <p class="mini-note" style="text-align:center;max-width:480px;">
+            Download the vector <strong>QR Code (.SVG)</strong> to customize your layout in <strong>Canva</strong> alongside <code>canva-svg-pack/</code>, OR download the complete <strong>1080×1350 Printable QR Gift Card (.PNG)</strong> below right away!
+          </p>
+          <canvas id="giftCardCanvas" width="1080" height="1350"></canvas>
+          <div class="export-grid">
+            <button id="downloadHtmlBtn2" class="btn btn-primary" type="button">1. Download Customer index.html</button>
+            <button id="downloadQrSvgBtn" class="btn btn-success" type="button">2. Download QR Code (.SVG for Canva)</button>
+            <button id="downloadGiftPngBtn" class="btn" type="button">3. Download Full QR Gift Card (.PNG)</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast" class="toast">Saved!</div>
+
+  <!-- Embedded MIT-Licensed qrcode-generator Library -->
+  <script>
+//---------------------------------------------------------------------
+//
+// QR Code Generator for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//  http://www.opensource.org/licenses/mit-license.php
+//
+// The word 'QR Code' is registered trademark of
+// DENSO WAVE INCORPORATED
+//  http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+
+var qrcode = function() {
+
+  //---------------------------------------------------------------------
+  // qrcode
+  //---------------------------------------------------------------------
+
+  /**
+   * qrcode
+   * @param typeNumber 1 to 40
+   * @param errorCorrectionLevel 'L','M','Q','H'
+   */
+  var qrcode = function(typeNumber, errorCorrectionLevel) {
+
+    var PAD0 = 0xEC;
+    var PAD1 = 0x11;
+
+    var _typeNumber = typeNumber;
+    var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+    var _modules = null;
+    var _moduleCount = 0;
+    var _dataCache = null;
+    var _dataList = [];
+
+    var _this = {};
+
+    var makeImpl = function(test, maskPattern) {
+
+      _moduleCount = _typeNumber * 4 + 17;
+      _modules = function(moduleCount) {
+        var modules = new Array(moduleCount);
+        for (var row = 0; row < moduleCount; row += 1) {
+          modules[row] = new Array(moduleCount);
+          for (var col = 0; col < moduleCount; col += 1) {
+            modules[row][col] = null;
+          }
+        }
+        return modules;
+      }(_moduleCount);
+
+      setupPositionProbePattern(0, 0);
+      setupPositionProbePattern(_moduleCount - 7, 0);
+      setupPositionProbePattern(0, _moduleCount - 7);
+      setupPositionAdjustPattern();
+      setupTimingPattern();
+      setupTypeInfo(test, maskPattern);
+
+      if (_typeNumber >= 7) {
+        setupTypeNumber(test);
+      }
+
+      if (_dataCache == null) {
+        _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+      }
+
+      mapData(_dataCache, maskPattern);
+    };
+
+    var setupPositionProbePattern = function(row, col) {
+
+      for (var r = -1; r <= 7; r += 1) {
+
+        if (row + r <= -1 || _moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c += 1) {
+
+          if (col + c <= -1 || _moduleCount <= col + c) continue;
+
+          if ( (0 <= r && r <= 6 && (c == 0 || c == 6) )
+              || (0 <= c && c <= 6 && (r == 0 || r == 6) )
+              || (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+            _modules[row + r][col + c] = true;
+          } else {
+            _modules[row + r][col + c] = false;
+          }
+        }
+      }
+    };
+
+    var getBestMaskPattern = function() {
+
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i += 1) {
+
+        makeImpl(true, i);
+
+        var lostPoint = QRUtil.getLostPoint(_this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    };
+
+    var setupTimingPattern = function() {
+
+      for (var r = 8; r < _moduleCount - 8; r += 1) {
+        if (_modules[r][6] != null) {
+          continue;
+        }
+        _modules[r][6] = (r % 2 == 0);
+      }
+
+      for (var c = 8; c < _moduleCount - 8; c += 1) {
+        if (_modules[6][c] != null) {
+          continue;
+        }
+        _modules[6][c] = (c % 2 == 0);
+      }
+    };
+
+    var setupPositionAdjustPattern = function() {
+
+      var pos = QRUtil.getPatternPosition(_typeNumber);
+
+      for (var i = 0; i < pos.length; i += 1) {
+
+        for (var j = 0; j < pos.length; j += 1) {
+
+          var row = pos[i];
+          var col = pos[j];
+
+          if (_modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r += 1) {
+
+            for (var c = -2; c <= 2; c += 1) {
+
+              if (r == -2 || r == 2 || c == -2 || c == 2
+                  || (r == 0 && c == 0) ) {
+                _modules[row + r][col + c] = true;
+              } else {
+                _modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    };
+
+    var setupTypeNumber = function(test) {
+
+      var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[Math.floor(i / 3)][i % 3 + _moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i += 1) {
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+        _modules[i % 3 + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    };
+
+    var setupTypeInfo = function(test, maskPattern) {
+
+      var data = (_errorCorrectionLevel << 3) | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      // vertical
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 6) {
+          _modules[i][8] = mod;
+        } else if (i < 8) {
+          _modules[i + 1][8] = mod;
+        } else {
+          _modules[_moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      // horizontal
+      for (var i = 0; i < 15; i += 1) {
+
+        var mod = (!test && ( (bits >> i) & 1) == 1);
+
+        if (i < 8) {
+          _modules[8][_moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          _modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          _modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      // fixed module
+      _modules[_moduleCount - 8][8] = (!test);
+    };
+
+    var mapData = function(data, maskPattern) {
+
+      var inc = -1;
+      var row = _moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+      var maskFunc = QRUtil.getMaskFunction(maskPattern);
+
+      for (var col = _moduleCount - 1; col > 0; col -= 2) {
+
+        if (col == 6) col -= 1;
+
+        while (true) {
+
+          for (var c = 0; c < 2; c += 1) {
+
+            if (_modules[row][col - c] == null) {
+
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = ( ( (data[byteIndex] >>> bitIndex) & 1) == 1);
+              }
+
+              var mask = maskFunc(row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              _modules[row][col - c] = dark;
+              bitIndex -= 1;
+
+              if (bitIndex == -1) {
+                byteIndex += 1;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || _moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    };
+
+    var createBytes = function(buffer, rsBlocks) {
+
+      var offset = 0;
+
+      var maxDcCount = 0;
+      var maxEcCount = 0;
+
+      var dcdata = new Array(rsBlocks.length);
+      var ecdata = new Array(rsBlocks.length);
+
+      for (var r = 0; r < rsBlocks.length; r += 1) {
+
+        var dcCount = rsBlocks[r].dataCount;
+        var ecCount = rsBlocks[r].totalCount - dcCount;
+
+        maxDcCount = Math.max(maxDcCount, dcCount);
+        maxEcCount = Math.max(maxEcCount, ecCount);
+
+        dcdata[r] = new Array(dcCount);
+
+        for (var i = 0; i < dcdata[r].length; i += 1) {
+          dcdata[r][i] = 0xff & buffer.getBuffer()[i + offset];
+        }
+        offset += dcCount;
+
+        var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+        var rawPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+        var modPoly = rawPoly.mod(rsPoly);
+        ecdata[r] = new Array(rsPoly.getLength() - 1);
+        for (var i = 0; i < ecdata[r].length; i += 1) {
+          var modIndex = i + modPoly.getLength() - ecdata[r].length;
+          ecdata[r][i] = (modIndex >= 0)? modPoly.getAt(modIndex) : 0;
+        }
+      }
+
+      var totalCodeCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalCodeCount += rsBlocks[i].totalCount;
+      }
+
+      var data = new Array(totalCodeCount);
+      var index = 0;
+
+      for (var i = 0; i < maxDcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < dcdata[r].length) {
+            data[index] = dcdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      for (var i = 0; i < maxEcCount; i += 1) {
+        for (var r = 0; r < rsBlocks.length; r += 1) {
+          if (i < ecdata[r].length) {
+            data[index] = ecdata[r][i];
+            index += 1;
+          }
+        }
+      }
+
+      return data;
+    };
+
+    var createData = function(typeNumber, errorCorrectionLevel, dataList) {
+
+      var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+
+      var buffer = qrBitBuffer();
+
+      for (var i = 0; i < dataList.length; i += 1) {
+        var data = dataList[i];
+        buffer.put(data.getMode(), 4);
+        buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+        data.write(buffer);
+      }
+
+      // calc num max data.
+      var totalDataCount = 0;
+      for (var i = 0; i < rsBlocks.length; i += 1) {
+        totalDataCount += rsBlocks[i].dataCount;
+      }
+
+      if (buffer.getLengthInBits() > totalDataCount * 8) {
+        throw 'code length overflow. ('
+          + buffer.getLengthInBits()
+          + '>'
+          + totalDataCount * 8
+          + ')';
+      }
+
+      // end code
+      if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+        buffer.put(0, 4);
+      }
+
+      // padding
+      while (buffer.getLengthInBits() % 8 != 0) {
+        buffer.putBit(false);
+      }
+
+      // padding
+      while (true) {
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD0, 8);
+
+        if (buffer.getLengthInBits() >= totalDataCount * 8) {
+          break;
+        }
+        buffer.put(PAD1, 8);
+      }
+
+      return createBytes(buffer, rsBlocks);
+    };
+
+    _this.addData = function(data, mode) {
+
+      mode = mode || 'Byte';
+
+      var newData = null;
+
+      switch(mode) {
+      case 'Numeric' :
+        newData = qrNumber(data);
+        break;
+      case 'Alphanumeric' :
+        newData = qrAlphaNum(data);
+        break;
+      case 'Byte' :
+        newData = qr8BitByte(data);
+        break;
+      case 'Kanji' :
+        newData = qrKanji(data);
+        break;
+      default :
+        throw 'mode:' + mode;
+      }
+
+      _dataList.push(newData);
+      _dataCache = null;
+    };
+
+    _this.isDark = function(row, col) {
+      if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col) {
+        throw row + ',' + col;
+      }
+      return _modules[row][col];
+    };
+
+    _this.getModuleCount = function() {
+      return _moduleCount;
+    };
+
+    _this.make = function() {
+      if (_typeNumber < 1) {
+        var typeNumber = 1;
+
+        for (; typeNumber < 40; typeNumber++) {
+          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
+          var buffer = qrBitBuffer();
+
+          for (var i = 0; i < _dataList.length; i++) {
+            var data = _dataList[i];
+            buffer.put(data.getMode(), 4);
+            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber) );
+            data.write(buffer);
+          }
+
+          var totalDataCount = 0;
+          for (var i = 0; i < rsBlocks.length; i++) {
+            totalDataCount += rsBlocks[i].dataCount;
+          }
+
+          if (buffer.getLengthInBits() <= totalDataCount * 8) {
+            break;
+          }
+        }
+
+        _typeNumber = typeNumber;
+      }
+
+      makeImpl(false, getBestMaskPattern() );
+    };
+
+    _this.createTableTag = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var qrHtml = '';
+
+      qrHtml += '<table style="';
+      qrHtml += ' border-width: 0px; border-style: none;';
+      qrHtml += ' border-collapse: collapse;';
+      qrHtml += ' padding: 0px; margin: ' + margin + 'px;';
+      qrHtml += '">';
+      qrHtml += '<tbody>';
+
+      for (var r = 0; r < _this.getModuleCount(); r += 1) {
+
+        qrHtml += '<tr>';
+
+        for (var c = 0; c < _this.getModuleCount(); c += 1) {
+          qrHtml += '<td style="';
+          qrHtml += ' border-width: 0px; border-style: none;';
+          qrHtml += ' border-collapse: collapse;';
+          qrHtml += ' padding: 0px; margin: 0px;';
+          qrHtml += ' width: ' + cellSize + 'px;';
+          qrHtml += ' height: ' + cellSize + 'px;';
+          qrHtml += ' background-color: ';
+          qrHtml += _this.isDark(r, c)? '#000000' : '#ffffff';
+          qrHtml += ';';
+          qrHtml += '"/>';
+        }
+
+        qrHtml += '</tr>';
+      }
+
+      qrHtml += '</tbody>';
+      qrHtml += '</table>';
+
+      return qrHtml;
+    };
+
+    _this.createSvgTag = function(cellSize, margin, alt, title) {
+
+      var opts = {};
+      if (typeof arguments[0] == 'object') {
+        // Called by options.
+        opts = arguments[0];
+        // overwrite cellSize and margin.
+        cellSize = opts.cellSize;
+        margin = opts.margin;
+        alt = opts.alt;
+        title = opts.title;
+      }
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      // Compose alt property surrogate
+      alt = (typeof alt === 'string') ? {text: alt} : alt || {};
+      alt.text = alt.text || null;
+      alt.id = (alt.text) ? alt.id || 'qrcode-description' : null;
+
+      // Compose title property surrogate
+      title = (typeof title === 'string') ? {text: title} : title || {};
+      title.text = title.text || null;
+      title.id = (title.text) ? title.id || 'qrcode-title' : null;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var c, mc, r, mr, qrSvg='', rect;
+
+      rect = 'l' + cellSize + ',0 0,' + cellSize +
+        ' -' + cellSize + ',0 0,-' + cellSize + 'z ';
+
+      qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
+      qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : '';
+      qrSvg += ' viewBox="0 0 ' + size + ' ' + size + '" ';
+      qrSvg += ' preserveAspectRatio="xMinYMin meet"';
+      qrSvg += (title.text || alt.text) ? ' role="img" aria-labelledby="' +
+          escapeXml([title.id, alt.id].join(' ').trim() ) + '"' : '';
+      qrSvg += '>';
+      qrSvg += (title.text) ? '<title id="' + escapeXml(title.id) + '">' +
+          escapeXml(title.text) + '</title>' : '';
+      qrSvg += (alt.text) ? '<description id="' + escapeXml(alt.id) + '">' +
+          escapeXml(alt.text) + '</description>' : '';
+      qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
+      qrSvg += '<path d="';
+
+      for (r = 0; r < _this.getModuleCount(); r += 1) {
+        mr = r * cellSize + margin;
+        for (c = 0; c < _this.getModuleCount(); c += 1) {
+          if (_this.isDark(r, c) ) {
+            mc = c*cellSize+margin;
+            qrSvg += 'M' + mc + ',' + mr + rect;
+          }
+        }
+      }
+
+      qrSvg += '" stroke="transparent" fill="black"/>';
+      qrSvg += '</svg>';
+
+      return qrSvg;
+    };
+
+    _this.createDataURL = function(cellSize, margin) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      return createDataURL(size, size, function(x, y) {
+        if (min <= x && x < max && min <= y && y < max) {
+          var c = Math.floor( (x - min) / cellSize);
+          var r = Math.floor( (y - min) / cellSize);
+          return _this.isDark(r, c)? 0 : 1;
+        } else {
+          return 1;
+        }
+      } );
+    };
+
+    _this.createImgTag = function(cellSize, margin, alt) {
+
+      cellSize = cellSize || 2;
+      margin = (typeof margin == 'undefined')? cellSize * 4 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+
+      var img = '';
+      img += '<img';
+      img += '\u0020src="';
+      img += _this.createDataURL(cellSize, margin);
+      img += '"';
+      img += '\u0020width="';
+      img += size;
+      img += '"';
+      img += '\u0020height="';
+      img += size;
+      img += '"';
+      if (alt) {
+        img += '\u0020alt="';
+        img += escapeXml(alt);
+        img += '"';
+      }
+      img += '/>';
+
+      return img;
+    };
+
+    var escapeXml = function(s) {
+      var escaped = '';
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charAt(i);
+        switch(c) {
+        case '<': escaped += '&lt;'; break;
+        case '>': escaped += '&gt;'; break;
+        case '&': escaped += '&amp;'; break;
+        case '"': escaped += '&quot;'; break;
+        default : escaped += c; break;
+        }
+      }
+      return escaped;
+    };
+
+    var _createHalfASCII = function(margin) {
+      var cellSize = 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r1, r2, p;
+
+      var blocks = {
+        '██': '█',
+        '█ ': '▀',
+        ' █': '▄',
+        '  ': ' '
+      };
+
+      var blocksLastLineNoMargin = {
+        '██': '▀',
+        '█ ': '▀',
+        ' █': ' ',
+        '  ': ' '
+      };
+
+      var ascii = '';
+      for (y = 0; y < size; y += 2) {
+        r1 = Math.floor((y - min) / cellSize);
+        r2 = Math.floor((y + 1 - min) / cellSize);
+        for (x = 0; x < size; x += 1) {
+          p = '█';
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r1, Math.floor((x - min) / cellSize))) {
+            p = ' ';
+          }
+
+          if (min <= x && x < max && min <= y+1 && y+1 < max && _this.isDark(r2, Math.floor((x - min) / cellSize))) {
+            p += ' ';
+          }
+          else {
+            p += '█';
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          ascii += (margin < 1 && y+1 >= max) ? blocksLastLineNoMargin[p] : blocks[p];
+        }
+
+        ascii += '\n';
+      }
+
+      if (size % 2 && margin > 0) {
+        return ascii.substring(0, ascii.length - size - 1) + Array(size+1).join('▀');
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.createASCII = function(cellSize, margin) {
+      cellSize = cellSize || 1;
+
+      if (cellSize < 2) {
+        return _createHalfASCII(margin);
+      }
+
+      cellSize -= 1;
+      margin = (typeof margin == 'undefined')? cellSize * 2 : margin;
+
+      var size = _this.getModuleCount() * cellSize + margin * 2;
+      var min = margin;
+      var max = size - margin;
+
+      var y, x, r, p;
+
+      var white = Array(cellSize+1).join('██');
+      var black = Array(cellSize+1).join('  ');
+
+      var ascii = '';
+      var line = '';
+      for (y = 0; y < size; y += 1) {
+        r = Math.floor( (y - min) / cellSize);
+        line = '';
+        for (x = 0; x < size; x += 1) {
+          p = 1;
+
+          if (min <= x && x < max && min <= y && y < max && _this.isDark(r, Math.floor((x - min) / cellSize))) {
+            p = 0;
+          }
+
+          // Output 2 characters per pixel, to create full square. 1 character per pixels gives only half width of square.
+          line += p ? white : black;
+        }
+
+        for (r = 0; r < cellSize; r += 1) {
+          ascii += line + '\n';
+        }
+      }
+
+      return ascii.substring(0, ascii.length-1);
+    };
+
+    _this.renderTo2dContext = function(context, cellSize) {
+      cellSize = cellSize || 2;
+      var length = _this.getModuleCount();
+      for (var row = 0; row < length; row++) {
+        for (var col = 0; col < length; col++) {
+          context.fillStyle = _this.isDark(row, col) ? 'black' : 'white';
+          context.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+        }
+      }
+    }
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrcode.stringToBytes
+  //---------------------------------------------------------------------
+
+  qrcode.stringToBytesFuncs = {
+    'default' : function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        bytes.push(c & 0xff);
+      }
+      return bytes;
+    }
+  };
+
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['default'];
+
+  //---------------------------------------------------------------------
+  // qrcode.createStringToBytes
+  //---------------------------------------------------------------------
+
+  /**
+   * @param unicodeData base64 string of byte array.
+   * [16bit Unicode],[16bit Bytes], ...
+   * @param numChars
+   */
+  qrcode.createStringToBytes = function(unicodeData, numChars) {
+
+    // create conversion map.
+
+    var unicodeMap = function() {
+
+      var bin = base64DecodeInputStream(unicodeData);
+      var read = function() {
+        var b = bin.read();
+        if (b == -1) throw 'eof';
+        return b;
+      };
+
+      var count = 0;
+      var unicodeMap = {};
+      while (true) {
+        var b0 = bin.read();
+        if (b0 == -1) break;
+        var b1 = read();
+        var b2 = read();
+        var b3 = read();
+        var k = String.fromCharCode( (b0 << 8) | b1);
+        var v = (b2 << 8) | b3;
+        unicodeMap[k] = v;
+        count += 1;
+      }
+      if (count != numChars) {
+        throw count + ' != ' + numChars;
+      }
+
+      return unicodeMap;
+    }();
+
+    var unknownChar = '?'.charCodeAt(0);
+
+    return function(s) {
+      var bytes = [];
+      for (var i = 0; i < s.length; i += 1) {
+        var c = s.charCodeAt(i);
+        if (c < 128) {
+          bytes.push(c);
+        } else {
+          var b = unicodeMap[s.charAt(i)];
+          if (typeof b == 'number') {
+            if ( (b & 0xff) == b) {
+              // 1byte
+              bytes.push(b);
+            } else {
+              // 2bytes
+              bytes.push(b >>> 8);
+              bytes.push(b & 0xff);
+            }
+          } else {
+            bytes.push(unknownChar);
+          }
+        }
+      }
+      return bytes;
+    };
+  };
+
+  //---------------------------------------------------------------------
+  // QRMode
+  //---------------------------------------------------------------------
+
+  var QRMode = {
+    MODE_NUMBER :    1 << 0,
+    MODE_ALPHA_NUM : 1 << 1,
+    MODE_8BIT_BYTE : 1 << 2,
+    MODE_KANJI :     1 << 3
+  };
+
+  //---------------------------------------------------------------------
+  // QRErrorCorrectionLevel
+  //---------------------------------------------------------------------
+
+  var QRErrorCorrectionLevel = {
+    L : 1,
+    M : 0,
+    Q : 3,
+    H : 2
+  };
+
+  //---------------------------------------------------------------------
+  // QRMaskPattern
+  //---------------------------------------------------------------------
+
+  var QRMaskPattern = {
+    PATTERN000 : 0,
+    PATTERN001 : 1,
+    PATTERN010 : 2,
+    PATTERN011 : 3,
+    PATTERN100 : 4,
+    PATTERN101 : 5,
+    PATTERN110 : 6,
+    PATTERN111 : 7
+  };
+
+  //---------------------------------------------------------------------
+  // QRUtil
+  //---------------------------------------------------------------------
+
+  var QRUtil = function() {
+
+    var PATTERN_POSITION_TABLE = [
+      [],
+      [6, 18],
+      [6, 22],
+      [6, 26],
+      [6, 30],
+      [6, 34],
+      [6, 22, 38],
+      [6, 24, 42],
+      [6, 26, 46],
+      [6, 28, 50],
+      [6, 30, 54],
+      [6, 32, 58],
+      [6, 34, 62],
+      [6, 26, 46, 66],
+      [6, 26, 48, 70],
+      [6, 26, 50, 74],
+      [6, 30, 54, 78],
+      [6, 30, 56, 82],
+      [6, 30, 58, 86],
+      [6, 34, 62, 90],
+      [6, 28, 50, 72, 94],
+      [6, 26, 50, 74, 98],
+      [6, 30, 54, 78, 102],
+      [6, 28, 54, 80, 106],
+      [6, 32, 58, 84, 110],
+      [6, 30, 58, 86, 114],
+      [6, 34, 62, 90, 118],
+      [6, 26, 50, 74, 98, 122],
+      [6, 30, 54, 78, 102, 126],
+      [6, 26, 52, 78, 104, 130],
+      [6, 30, 56, 82, 108, 134],
+      [6, 34, 60, 86, 112, 138],
+      [6, 30, 58, 86, 114, 142],
+      [6, 34, 62, 90, 118, 146],
+      [6, 30, 54, 78, 102, 126, 150],
+      [6, 24, 50, 76, 102, 128, 154],
+      [6, 28, 54, 80, 106, 132, 158],
+      [6, 32, 58, 84, 110, 136, 162],
+      [6, 26, 54, 82, 110, 138, 166],
+      [6, 30, 58, 86, 114, 142, 170]
+    ];
+    var G15 = (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0);
+    var G18 = (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0);
+    var G15_MASK = (1 << 14) | (1 << 12) | (1 << 10) | (1 << 4) | (1 << 1);
+
+    var _this = {};
+
+    var getBCHDigit = function(data) {
+      var digit = 0;
+      while (data != 0) {
+        digit += 1;
+        data >>>= 1;
+      }
+      return digit;
+    };
+
+    _this.getBCHTypeInfo = function(data) {
+      var d = data << 10;
+      while (getBCHDigit(d) - getBCHDigit(G15) >= 0) {
+        d ^= (G15 << (getBCHDigit(d) - getBCHDigit(G15) ) );
+      }
+      return ( (data << 10) | d) ^ G15_MASK;
+    };
+
+    _this.getBCHTypeNumber = function(data) {
+      var d = data << 12;
+      while (getBCHDigit(d) - getBCHDigit(G18) >= 0) {
+        d ^= (G18 << (getBCHDigit(d) - getBCHDigit(G18) ) );
+      }
+      return (data << 12) | d;
+    };
+
+    _this.getPatternPosition = function(typeNumber) {
+      return PATTERN_POSITION_TABLE[typeNumber - 1];
+    };
+
+    _this.getMaskFunction = function(maskPattern) {
+
+      switch (maskPattern) {
+
+      case QRMaskPattern.PATTERN000 :
+        return function(i, j) { return (i + j) % 2 == 0; };
+      case QRMaskPattern.PATTERN001 :
+        return function(i, j) { return i % 2 == 0; };
+      case QRMaskPattern.PATTERN010 :
+        return function(i, j) { return j % 3 == 0; };
+      case QRMaskPattern.PATTERN011 :
+        return function(i, j) { return (i + j) % 3 == 0; };
+      case QRMaskPattern.PATTERN100 :
+        return function(i, j) { return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 == 0; };
+      case QRMaskPattern.PATTERN101 :
+        return function(i, j) { return (i * j) % 2 + (i * j) % 3 == 0; };
+      case QRMaskPattern.PATTERN110 :
+        return function(i, j) { return ( (i * j) % 2 + (i * j) % 3) % 2 == 0; };
+      case QRMaskPattern.PATTERN111 :
+        return function(i, j) { return ( (i * j) % 3 + (i + j) % 2) % 2 == 0; };
+
+      default :
+        throw 'bad maskPattern:' + maskPattern;
+      }
+    };
+
+    _this.getErrorCorrectPolynomial = function(errorCorrectLength) {
+      var a = qrPolynomial([1], 0);
+      for (var i = 0; i < errorCorrectLength; i += 1) {
+        a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0) );
+      }
+      return a;
+    };
+
+    _this.getLengthInBits = function(mode, type) {
+
+      if (1 <= type && type < 10) {
+
+        // 1 - 9
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 10;
+        case QRMode.MODE_ALPHA_NUM : return 9;
+        case QRMode.MODE_8BIT_BYTE : return 8;
+        case QRMode.MODE_KANJI     : return 8;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 27) {
+
+        // 10 - 26
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 12;
+        case QRMode.MODE_ALPHA_NUM : return 11;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 10;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else if (type < 41) {
+
+        // 27 - 40
+
+        switch(mode) {
+        case QRMode.MODE_NUMBER    : return 14;
+        case QRMode.MODE_ALPHA_NUM : return 13;
+        case QRMode.MODE_8BIT_BYTE : return 16;
+        case QRMode.MODE_KANJI     : return 12;
+        default :
+          throw 'mode:' + mode;
+        }
+
+      } else {
+        throw 'type:' + type;
+      }
+    };
+
+    _this.getLostPoint = function(qrcode) {
+
+      var moduleCount = qrcode.getModuleCount();
+
+      var lostPoint = 0;
+
+      // LEVEL1
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount; col += 1) {
+
+          var sameCount = 0;
+          var dark = qrcode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r += 1) {
+
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c += 1) {
+
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrcode.isDark(row + r, col + c) ) {
+                sameCount += 1;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += (3 + sameCount - 5);
+          }
+        }
+      };
+
+      // LEVEL2
+
+      for (var row = 0; row < moduleCount - 1; row += 1) {
+        for (var col = 0; col < moduleCount - 1; col += 1) {
+          var count = 0;
+          if (qrcode.isDark(row, col) ) count += 1;
+          if (qrcode.isDark(row + 1, col) ) count += 1;
+          if (qrcode.isDark(row, col + 1) ) count += 1;
+          if (qrcode.isDark(row + 1, col + 1) ) count += 1;
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      // LEVEL3
+
+      for (var row = 0; row < moduleCount; row += 1) {
+        for (var col = 0; col < moduleCount - 6; col += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row, col + 1)
+              &&  qrcode.isDark(row, col + 2)
+              &&  qrcode.isDark(row, col + 3)
+              &&  qrcode.isDark(row, col + 4)
+              && !qrcode.isDark(row, col + 5)
+              &&  qrcode.isDark(row, col + 6) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount - 6; row += 1) {
+          if (qrcode.isDark(row, col)
+              && !qrcode.isDark(row + 1, col)
+              &&  qrcode.isDark(row + 2, col)
+              &&  qrcode.isDark(row + 3, col)
+              &&  qrcode.isDark(row + 4, col)
+              && !qrcode.isDark(row + 5, col)
+              &&  qrcode.isDark(row + 6, col) ) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      // LEVEL4
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col += 1) {
+        for (var row = 0; row < moduleCount; row += 1) {
+          if (qrcode.isDark(row, col) ) {
+            darkCount += 1;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+
+      return lostPoint;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // QRMath
+  //---------------------------------------------------------------------
+
+  var QRMath = function() {
+
+    var EXP_TABLE = new Array(256);
+    var LOG_TABLE = new Array(256);
+
+    // initialize tables
+    for (var i = 0; i < 8; i += 1) {
+      EXP_TABLE[i] = 1 << i;
+    }
+    for (var i = 8; i < 256; i += 1) {
+      EXP_TABLE[i] = EXP_TABLE[i - 4]
+        ^ EXP_TABLE[i - 5]
+        ^ EXP_TABLE[i - 6]
+        ^ EXP_TABLE[i - 8];
+    }
+    for (var i = 0; i < 255; i += 1) {
+      LOG_TABLE[EXP_TABLE[i] ] = i;
+    }
+
+    var _this = {};
+
+    _this.glog = function(n) {
+
+      if (n < 1) {
+        throw 'glog(' + n + ')';
+      }
+
+      return LOG_TABLE[n];
+    };
+
+    _this.gexp = function(n) {
+
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return EXP_TABLE[n];
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrPolynomial
+  //---------------------------------------------------------------------
+
+  function qrPolynomial(num, shift) {
+
+    if (typeof num.length == 'undefined') {
+      throw num.length + '/' + shift;
+    }
+
+    var _num = function() {
+      var offset = 0;
+      while (offset < num.length && num[offset] == 0) {
+        offset += 1;
+      }
+      var _num = new Array(num.length - offset + shift);
+      for (var i = 0; i < num.length - offset; i += 1) {
+        _num[i] = num[i + offset];
+      }
+      return _num;
+    }();
+
+    var _this = {};
+
+    _this.getAt = function(index) {
+      return _num[index];
+    };
+
+    _this.getLength = function() {
+      return _num.length;
+    };
+
+    _this.multiply = function(e) {
+
+      var num = new Array(_this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        for (var j = 0; j < e.getLength(); j += 1) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i) ) + QRMath.glog(e.getAt(j) ) );
+        }
+      }
+
+      return qrPolynomial(num, 0);
+    };
+
+    _this.mod = function(e) {
+
+      if (_this.getLength() - e.getLength() < 0) {
+        return _this;
+      }
+
+      var ratio = QRMath.glog(_this.getAt(0) ) - QRMath.glog(e.getAt(0) );
+
+      var num = new Array(_this.getLength() );
+      for (var i = 0; i < _this.getLength(); i += 1) {
+        num[i] = _this.getAt(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i += 1) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i) ) + ratio);
+      }
+
+      // recursive call
+      return qrPolynomial(num, 0).mod(e);
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // QRRSBlock
+  //---------------------------------------------------------------------
+
+  var QRRSBlock = function() {
+
+    var RS_BLOCK_TABLE = [
+
+      // L
+      // M
+      // Q
+      // H
+
+      // 1
+      [1, 26, 19],
+      [1, 26, 16],
+      [1, 26, 13],
+      [1, 26, 9],
+
+      // 2
+      [1, 44, 34],
+      [1, 44, 28],
+      [1, 44, 22],
+      [1, 44, 16],
+
+      // 3
+      [1, 70, 55],
+      [1, 70, 44],
+      [2, 35, 17],
+      [2, 35, 13],
+
+      // 4
+      [1, 100, 80],
+      [2, 50, 32],
+      [2, 50, 24],
+      [4, 25, 9],
+
+      // 5
+      [1, 134, 108],
+      [2, 67, 43],
+      [2, 33, 15, 2, 34, 16],
+      [2, 33, 11, 2, 34, 12],
+
+      // 6
+      [2, 86, 68],
+      [4, 43, 27],
+      [4, 43, 19],
+      [4, 43, 15],
+
+      // 7
+      [2, 98, 78],
+      [4, 49, 31],
+      [2, 32, 14, 4, 33, 15],
+      [4, 39, 13, 1, 40, 14],
+
+      // 8
+      [2, 121, 97],
+      [2, 60, 38, 2, 61, 39],
+      [4, 40, 18, 2, 41, 19],
+      [4, 40, 14, 2, 41, 15],
+
+      // 9
+      [2, 146, 116],
+      [3, 58, 36, 2, 59, 37],
+      [4, 36, 16, 4, 37, 17],
+      [4, 36, 12, 4, 37, 13],
+
+      // 10
+      [2, 86, 68, 2, 87, 69],
+      [4, 69, 43, 1, 70, 44],
+      [6, 43, 19, 2, 44, 20],
+      [6, 43, 15, 2, 44, 16],
+
+      // 11
+      [4, 101, 81],
+      [1, 80, 50, 4, 81, 51],
+      [4, 50, 22, 4, 51, 23],
+      [3, 36, 12, 8, 37, 13],
+
+      // 12
+      [2, 116, 92, 2, 117, 93],
+      [6, 58, 36, 2, 59, 37],
+      [4, 46, 20, 6, 47, 21],
+      [7, 42, 14, 4, 43, 15],
+
+      // 13
+      [4, 133, 107],
+      [8, 59, 37, 1, 60, 38],
+      [8, 44, 20, 4, 45, 21],
+      [12, 33, 11, 4, 34, 12],
+
+      // 14
+      [3, 145, 115, 1, 146, 116],
+      [4, 64, 40, 5, 65, 41],
+      [11, 36, 16, 5, 37, 17],
+      [11, 36, 12, 5, 37, 13],
+
+      // 15
+      [5, 109, 87, 1, 110, 88],
+      [5, 65, 41, 5, 66, 42],
+      [5, 54, 24, 7, 55, 25],
+      [11, 36, 12, 7, 37, 13],
+
+      // 16
+      [5, 122, 98, 1, 123, 99],
+      [7, 73, 45, 3, 74, 46],
+      [15, 43, 19, 2, 44, 20],
+      [3, 45, 15, 13, 46, 16],
+
+      // 17
+      [1, 135, 107, 5, 136, 108],
+      [10, 74, 46, 1, 75, 47],
+      [1, 50, 22, 15, 51, 23],
+      [2, 42, 14, 17, 43, 15],
+
+      // 18
+      [5, 150, 120, 1, 151, 121],
+      [9, 69, 43, 4, 70, 44],
+      [17, 50, 22, 1, 51, 23],
+      [2, 42, 14, 19, 43, 15],
+
+      // 19
+      [3, 141, 113, 4, 142, 114],
+      [3, 70, 44, 11, 71, 45],
+      [17, 47, 21, 4, 48, 22],
+      [9, 39, 13, 16, 40, 14],
+
+      // 20
+      [3, 135, 107, 5, 136, 108],
+      [3, 67, 41, 13, 68, 42],
+      [15, 54, 24, 5, 55, 25],
+      [15, 43, 15, 10, 44, 16],
+
+      // 21
+      [4, 144, 116, 4, 145, 117],
+      [17, 68, 42],
+      [17, 50, 22, 6, 51, 23],
+      [19, 46, 16, 6, 47, 17],
+
+      // 22
+      [2, 139, 111, 7, 140, 112],
+      [17, 74, 46],
+      [7, 54, 24, 16, 55, 25],
+      [34, 37, 13],
+
+      // 23
+      [4, 151, 121, 5, 152, 122],
+      [4, 75, 47, 14, 76, 48],
+      [11, 54, 24, 14, 55, 25],
+      [16, 45, 15, 14, 46, 16],
+
+      // 24
+      [6, 147, 117, 4, 148, 118],
+      [6, 73, 45, 14, 74, 46],
+      [11, 54, 24, 16, 55, 25],
+      [30, 46, 16, 2, 47, 17],
+
+      // 25
+      [8, 132, 106, 4, 133, 107],
+      [8, 75, 47, 13, 76, 48],
+      [7, 54, 24, 22, 55, 25],
+      [22, 45, 15, 13, 46, 16],
+
+      // 26
+      [10, 142, 114, 2, 143, 115],
+      [19, 74, 46, 4, 75, 47],
+      [28, 50, 22, 6, 51, 23],
+      [33, 46, 16, 4, 47, 17],
+
+      // 27
+      [8, 152, 122, 4, 153, 123],
+      [22, 73, 45, 3, 74, 46],
+      [8, 53, 23, 26, 54, 24],
+      [12, 45, 15, 28, 46, 16],
+
+      // 28
+      [3, 147, 117, 10, 148, 118],
+      [3, 73, 45, 23, 74, 46],
+      [4, 54, 24, 31, 55, 25],
+      [11, 45, 15, 31, 46, 16],
+
+      // 29
+      [7, 146, 116, 7, 147, 117],
+      [21, 73, 45, 7, 74, 46],
+      [1, 53, 23, 37, 54, 24],
+      [19, 45, 15, 26, 46, 16],
+
+      // 30
+      [5, 145, 115, 10, 146, 116],
+      [19, 75, 47, 10, 76, 48],
+      [15, 54, 24, 25, 55, 25],
+      [23, 45, 15, 25, 46, 16],
+
+      // 31
+      [13, 145, 115, 3, 146, 116],
+      [2, 74, 46, 29, 75, 47],
+      [42, 54, 24, 1, 55, 25],
+      [23, 45, 15, 28, 46, 16],
+
+      // 32
+      [17, 145, 115],
+      [10, 74, 46, 23, 75, 47],
+      [10, 54, 24, 35, 55, 25],
+      [19, 45, 15, 35, 46, 16],
+
+      // 33
+      [17, 145, 115, 1, 146, 116],
+      [14, 74, 46, 21, 75, 47],
+      [29, 54, 24, 19, 55, 25],
+      [11, 45, 15, 46, 46, 16],
+
+      // 34
+      [13, 145, 115, 6, 146, 116],
+      [14, 74, 46, 23, 75, 47],
+      [44, 54, 24, 7, 55, 25],
+      [59, 46, 16, 1, 47, 17],
+
+      // 35
+      [12, 151, 121, 7, 152, 122],
+      [12, 75, 47, 26, 76, 48],
+      [39, 54, 24, 14, 55, 25],
+      [22, 45, 15, 41, 46, 16],
+
+      // 36
+      [6, 151, 121, 14, 152, 122],
+      [6, 75, 47, 34, 76, 48],
+      [46, 54, 24, 10, 55, 25],
+      [2, 45, 15, 64, 46, 16],
+
+      // 37
+      [17, 152, 122, 4, 153, 123],
+      [29, 74, 46, 14, 75, 47],
+      [49, 54, 24, 10, 55, 25],
+      [24, 45, 15, 46, 46, 16],
+
+      // 38
+      [4, 152, 122, 18, 153, 123],
+      [13, 74, 46, 32, 75, 47],
+      [48, 54, 24, 14, 55, 25],
+      [42, 45, 15, 32, 46, 16],
+
+      // 39
+      [20, 147, 117, 4, 148, 118],
+      [40, 75, 47, 7, 76, 48],
+      [43, 54, 24, 22, 55, 25],
+      [10, 45, 15, 67, 46, 16],
+
+      // 40
+      [19, 148, 118, 6, 149, 119],
+      [18, 75, 47, 31, 76, 48],
+      [34, 54, 24, 34, 55, 25],
+      [20, 45, 15, 61, 46, 16]
+    ];
+
+    var qrRSBlock = function(totalCount, dataCount) {
+      var _this = {};
+      _this.totalCount = totalCount;
+      _this.dataCount = dataCount;
+      return _this;
+    };
+
+    var _this = {};
+
+    var getRsBlockTable = function(typeNumber, errorCorrectionLevel) {
+
+      switch(errorCorrectionLevel) {
+      case QRErrorCorrectionLevel.L :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+      case QRErrorCorrectionLevel.M :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+      case QRErrorCorrectionLevel.Q :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+      case QRErrorCorrectionLevel.H :
+        return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+      default :
+        return undefined;
+      }
+    };
+
+    _this.getRSBlocks = function(typeNumber, errorCorrectionLevel) {
+
+      var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+
+      if (typeof rsBlock == 'undefined') {
+        throw 'bad rs block @ typeNumber:' + typeNumber +
+            '/errorCorrectionLevel:' + errorCorrectionLevel;
+      }
+
+      var length = rsBlock.length / 3;
+
+      var list = [];
+
+      for (var i = 0; i < length; i += 1) {
+
+        var count = rsBlock[i * 3 + 0];
+        var totalCount = rsBlock[i * 3 + 1];
+        var dataCount = rsBlock[i * 3 + 2];
+
+        for (var j = 0; j < count; j += 1) {
+          list.push(qrRSBlock(totalCount, dataCount) );
+        }
+      }
+
+      return list;
+    };
+
+    return _this;
+  }();
+
+  //---------------------------------------------------------------------
+  // qrBitBuffer
+  //---------------------------------------------------------------------
+
+  var qrBitBuffer = function() {
+
+    var _buffer = [];
+    var _length = 0;
+
+    var _this = {};
+
+    _this.getBuffer = function() {
+      return _buffer;
+    };
+
+    _this.getAt = function(index) {
+      var bufIndex = Math.floor(index / 8);
+      return ( (_buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+    };
+
+    _this.put = function(num, length) {
+      for (var i = 0; i < length; i += 1) {
+        _this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+      }
+    };
+
+    _this.getLengthInBits = function() {
+      return _length;
+    };
+
+    _this.putBit = function(bit) {
+
+      var bufIndex = Math.floor(_length / 8);
+      if (_buffer.length <= bufIndex) {
+        _buffer.push(0);
+      }
+
+      if (bit) {
+        _buffer[bufIndex] |= (0x80 >>> (_length % 8) );
+      }
+
+      _length += 1;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrNumber
+  //---------------------------------------------------------------------
+
+  var qrNumber = function(data) {
+
+    var _mode = QRMode.MODE_NUMBER;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _data;
+
+      var i = 0;
+
+      while (i + 2 < data.length) {
+        buffer.put(strToNum(data.substring(i, i + 3) ), 10);
+        i += 3;
+      }
+
+      if (i < data.length) {
+        if (data.length - i == 1) {
+          buffer.put(strToNum(data.substring(i, i + 1) ), 4);
+        } else if (data.length - i == 2) {
+          buffer.put(strToNum(data.substring(i, i + 2) ), 7);
+        }
+      }
+    };
+
+    var strToNum = function(s) {
+      var num = 0;
+      for (var i = 0; i < s.length; i += 1) {
+        num = num * 10 + chatToNum(s.charAt(i) );
+      }
+      return num;
+    };
+
+    var chatToNum = function(c) {
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      }
+      throw 'illegal char :' + c;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrAlphaNum
+  //---------------------------------------------------------------------
+
+  var qrAlphaNum = function(data) {
+
+    var _mode = QRMode.MODE_ALPHA_NUM;
+    var _data = data;
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _data.length;
+    };
+
+    _this.write = function(buffer) {
+
+      var s = _data;
+
+      var i = 0;
+
+      while (i + 1 < s.length) {
+        buffer.put(
+          getCode(s.charAt(i) ) * 45 +
+          getCode(s.charAt(i + 1) ), 11);
+        i += 2;
+      }
+
+      if (i < s.length) {
+        buffer.put(getCode(s.charAt(i) ), 6);
+      }
+    };
+
+    var getCode = function(c) {
+
+      if ('0' <= c && c <= '9') {
+        return c.charCodeAt(0) - '0'.charCodeAt(0);
+      } else if ('A' <= c && c <= 'Z') {
+        return c.charCodeAt(0) - 'A'.charCodeAt(0) + 10;
+      } else {
+        switch (c) {
+        case ' ' : return 36;
+        case '$' : return 37;
+        case '%' : return 38;
+        case '*' : return 39;
+        case '+' : return 40;
+        case '-' : return 41;
+        case '.' : return 42;
+        case '/' : return 43;
+        case ':' : return 44;
+        default :
+          throw 'illegal char :' + c;
+        }
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qr8BitByte
+  //---------------------------------------------------------------------
+
+  var qr8BitByte = function(data) {
+
+    var _mode = QRMode.MODE_8BIT_BYTE;
+    var _data = data;
+    var _bytes = qrcode.stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return _bytes.length;
+    };
+
+    _this.write = function(buffer) {
+      for (var i = 0; i < _bytes.length; i += 1) {
+        buffer.put(_bytes[i], 8);
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // qrKanji
+  //---------------------------------------------------------------------
+
+  var qrKanji = function(data) {
+
+    var _mode = QRMode.MODE_KANJI;
+    var _data = data;
+
+    var stringToBytes = qrcode.stringToBytesFuncs['SJIS'];
+    if (!stringToBytes) {
+      throw 'sjis not supported.';
+    }
+    !function(c, code) {
+      // self test for sjis support.
+      var test = stringToBytes(c);
+      if (test.length != 2 || ( (test[0] << 8) | test[1]) != code) {
+        throw 'sjis not supported.';
+      }
+    }('\u53cb', 0x9746);
+
+    var _bytes = stringToBytes(data);
+
+    var _this = {};
+
+    _this.getMode = function() {
+      return _mode;
+    };
+
+    _this.getLength = function(buffer) {
+      return ~~(_bytes.length / 2);
+    };
+
+    _this.write = function(buffer) {
+
+      var data = _bytes;
+
+      var i = 0;
+
+      while (i + 1 < data.length) {
+
+        var c = ( (0xff & data[i]) << 8) | (0xff & data[i + 1]);
+
+        if (0x8140 <= c && c <= 0x9FFC) {
+          c -= 0x8140;
+        } else if (0xE040 <= c && c <= 0xEBBF) {
+          c -= 0xC140;
+        } else {
+          throw 'illegal char at ' + (i + 1) + '/' + c;
+        }
+
+        c = ( (c >>> 8) & 0xff) * 0xC0 + (c & 0xff);
+
+        buffer.put(c, 13);
+
+        i += 2;
+      }
+
+      if (i < data.length) {
+        throw 'illegal char at ' + (i + 1);
+      }
+    };
+
+    return _this;
+  };
+
+  //=====================================================================
+  // GIF Support etc.
+  //
+
+  //---------------------------------------------------------------------
+  // byteArrayOutputStream
+  //---------------------------------------------------------------------
+
+  var byteArrayOutputStream = function() {
+
+    var _bytes = [];
+
+    var _this = {};
+
+    _this.writeByte = function(b) {
+      _bytes.push(b & 0xff);
+    };
+
+    _this.writeShort = function(i) {
+      _this.writeByte(i);
+      _this.writeByte(i >>> 8);
+    };
+
+    _this.writeBytes = function(b, off, len) {
+      off = off || 0;
+      len = len || b.length;
+      for (var i = 0; i < len; i += 1) {
+        _this.writeByte(b[i + off]);
+      }
+    };
+
+    _this.writeString = function(s) {
+      for (var i = 0; i < s.length; i += 1) {
+        _this.writeByte(s.charCodeAt(i) );
+      }
+    };
+
+    _this.toByteArray = function() {
+      return _bytes;
+    };
+
+    _this.toString = function() {
+      var s = '';
+      s += '[';
+      for (var i = 0; i < _bytes.length; i += 1) {
+        if (i > 0) {
+          s += ',';
+        }
+        s += _bytes[i];
+      }
+      s += ']';
+      return s;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64EncodeOutputStream
+  //---------------------------------------------------------------------
+
+  var base64EncodeOutputStream = function() {
+
+    var _buffer = 0;
+    var _buflen = 0;
+    var _length = 0;
+    var _base64 = '';
+
+    var _this = {};
+
+    var writeEncoded = function(b) {
+      _base64 += String.fromCharCode(encode(b & 0x3f) );
+    };
+
+    var encode = function(n) {
+      if (n < 0) {
+        // error.
+      } else if (n < 26) {
+        return 0x41 + n;
+      } else if (n < 52) {
+        return 0x61 + (n - 26);
+      } else if (n < 62) {
+        return 0x30 + (n - 52);
+      } else if (n == 62) {
+        return 0x2b;
+      } else if (n == 63) {
+        return 0x2f;
+      }
+      throw 'n:' + n;
+    };
+
+    _this.writeByte = function(n) {
+
+      _buffer = (_buffer << 8) | (n & 0xff);
+      _buflen += 8;
+      _length += 1;
+
+      while (_buflen >= 6) {
+        writeEncoded(_buffer >>> (_buflen - 6) );
+        _buflen -= 6;
+      }
+    };
+
+    _this.flush = function() {
+
+      if (_buflen > 0) {
+        writeEncoded(_buffer << (6 - _buflen) );
+        _buffer = 0;
+        _buflen = 0;
+      }
+
+      if (_length % 3 != 0) {
+        // padding
+        var padlen = 3 - _length % 3;
+        for (var i = 0; i < padlen; i += 1) {
+          _base64 += '=';
+        }
+      }
+    };
+
+    _this.toString = function() {
+      return _base64;
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // base64DecodeInputStream
+  //---------------------------------------------------------------------
+
+  var base64DecodeInputStream = function(str) {
+
+    var _str = str;
+    var _pos = 0;
+    var _buffer = 0;
+    var _buflen = 0;
+
+    var _this = {};
+
+    _this.read = function() {
+
+      while (_buflen < 8) {
+
+        if (_pos >= _str.length) {
+          if (_buflen == 0) {
+            return -1;
+          }
+          throw 'unexpected end of file./' + _buflen;
+        }
+
+        var c = _str.charAt(_pos);
+        _pos += 1;
+
+        if (c == '=') {
+          _buflen = 0;
+          return -1;
+        } else if (c.match(/^\s$/) ) {
+          // ignore if whitespace.
+          continue;
+        }
+
+        _buffer = (_buffer << 6) | decode(c.charCodeAt(0) );
+        _buflen += 6;
+      }
+
+      var n = (_buffer >>> (_buflen - 8) ) & 0xff;
+      _buflen -= 8;
+      return n;
+    };
+
+    var decode = function(c) {
+      if (0x41 <= c && c <= 0x5a) {
+        return c - 0x41;
+      } else if (0x61 <= c && c <= 0x7a) {
+        return c - 0x61 + 26;
+      } else if (0x30 <= c && c <= 0x39) {
+        return c - 0x30 + 52;
+      } else if (c == 0x2b) {
+        return 62;
+      } else if (c == 0x2f) {
+        return 63;
+      } else {
+        throw 'c:' + c;
+      }
+    };
+
+    return _this;
+  };
+
+  //---------------------------------------------------------------------
+  // gifImage (B/W)
+  //---------------------------------------------------------------------
+
+  var gifImage = function(width, height) {
+
+    var _width = width;
+    var _height = height;
+    var _data = new Array(width * height);
+
+    var _this = {};
+
+    _this.setPixel = function(x, y, pixel) {
+      _data[y * _width + x] = pixel;
+    };
+
+    _this.write = function(out) {
+
+      //---------------------------------
+      // GIF Signature
+
+      out.writeString('GIF87a');
+
+      //---------------------------------
+      // Screen Descriptor
+
+      out.writeShort(_width);
+      out.writeShort(_height);
+
+      out.writeByte(0x80); // 2bit
+      out.writeByte(0);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Global Color Map
+
+      // black
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+      out.writeByte(0x00);
+
+      // white
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+      out.writeByte(0xff);
+
+      //---------------------------------
+      // Image Descriptor
+
+      out.writeString(',');
+      out.writeShort(0);
+      out.writeShort(0);
+      out.writeShort(_width);
+      out.writeShort(_height);
+      out.writeByte(0);
+
+      //---------------------------------
+      // Local Color Map
+
+      //---------------------------------
+      // Raster Data
+
+      var lzwMinCodeSize = 2;
+      var raster = getLZWRaster(lzwMinCodeSize);
+
+      out.writeByte(lzwMinCodeSize);
+
+      var offset = 0;
+
+      while (raster.length - offset > 255) {
+        out.writeByte(255);
+        out.writeBytes(raster, offset, 255);
+        offset += 255;
+      }
+
+      out.writeByte(raster.length - offset);
+      out.writeBytes(raster, offset, raster.length - offset);
+      out.writeByte(0x00);
+
+      //---------------------------------
+      // GIF Terminator
+      out.writeString(';');
+    };
+
+    var bitOutputStream = function(out) {
+
+      var _out = out;
+      var _bitLength = 0;
+      var _bitBuffer = 0;
+
+      var _this = {};
+
+      _this.write = function(data, length) {
+
+        if ( (data >>> length) != 0) {
+          throw 'length over';
+        }
+
+        while (_bitLength + length >= 8) {
+          _out.writeByte(0xff & ( (data << _bitLength) | _bitBuffer) );
+          length -= (8 - _bitLength);
+          data >>>= (8 - _bitLength);
+          _bitBuffer = 0;
+          _bitLength = 0;
+        }
+
+        _bitBuffer = (data << _bitLength) | _bitBuffer;
+        _bitLength = _bitLength + length;
+      };
+
+      _this.flush = function() {
+        if (_bitLength > 0) {
+          _out.writeByte(_bitBuffer);
+        }
+      };
+
+      return _this;
+    };
+
+    var getLZWRaster = function(lzwMinCodeSize) {
+
+      var clearCode = 1 << lzwMinCodeSize;
+      var endCode = (1 << lzwMinCodeSize) + 1;
+      var bitLength = lzwMinCodeSize + 1;
+
+      // Setup LZWTable
+      var table = lzwTable();
+
+      for (var i = 0; i < clearCode; i += 1) {
+        table.add(String.fromCharCode(i) );
+      }
+      table.add(String.fromCharCode(clearCode) );
+      table.add(String.fromCharCode(endCode) );
+
+      var byteOut = byteArrayOutputStream();
+      var bitOut = bitOutputStream(byteOut);
+
+      // clear code
+      bitOut.write(clearCode, bitLength);
+
+      var dataIndex = 0;
+
+      var s = String.fromCharCode(_data[dataIndex]);
+      dataIndex += 1;
+
+      while (dataIndex < _data.length) {
+
+        var c = String.fromCharCode(_data[dataIndex]);
+        dataIndex += 1;
+
+        if (table.contains(s + c) ) {
+
+          s = s + c;
+
+        } else {
+
+          bitOut.write(table.indexOf(s), bitLength);
+
+          if (table.size() < 0xfff) {
+
+            if (table.size() == (1 << bitLength) ) {
+              bitLength += 1;
+            }
+
+            table.add(s + c);
+          }
+
+          s = c;
+        }
+      }
+
+      bitOut.write(table.indexOf(s), bitLength);
+
+      // end code
+      bitOut.write(endCode, bitLength);
+
+      bitOut.flush();
+
+      return byteOut.toByteArray();
+    };
+
+    var lzwTable = function() {
+
+      var _map = {};
+      var _size = 0;
+
+      var _this = {};
+
+      _this.add = function(key) {
+        if (_this.contains(key) ) {
+          throw 'dup key:' + key;
+        }
+        _map[key] = _size;
+        _size += 1;
+      };
+
+      _this.size = function() {
+        return _size;
+      };
+
+      _this.indexOf = function(key) {
+        return _map[key];
+      };
+
+      _this.contains = function(key) {
+        return typeof _map[key] != 'undefined';
+      };
+
+      return _this;
+    };
+
+    return _this;
+  };
+
+  var createDataURL = function(width, height, getPixel) {
+    var gif = gifImage(width, height);
+    for (var y = 0; y < height; y += 1) {
+      for (var x = 0; x < width; x += 1) {
+        gif.setPixel(x, y, getPixel(x, y) );
+      }
+    }
+
+    var b = byteArrayOutputStream();
+    gif.write(b);
+
+    var base64 = base64EncodeOutputStream();
+    var bytes = b.toByteArray();
+    for (var i = 0; i < bytes.length; i += 1) {
+      base64.writeByte(bytes[i]);
+    }
+    base64.flush();
+
+    return 'data:image/gif;base64,' + base64;
+  };
+
+  //---------------------------------------------------------------------
+  // returns qrcode function.
+
+  return qrcode;
+}();
+
+// multibyte support
+!function() {
+
+  qrcode.stringToBytesFuncs['UTF-8'] = function(s) {
+    // http://stackoverflow.com/questions/18729405/how-to-convert-utf8-string-to-byte-array
+    function toUTF8Array(str) {
+      var utf8 = [];
+      for (var i=0; i < str.length; i++) {
+        var charcode = str.charCodeAt(i);
+        if (charcode < 0x80) utf8.push(charcode);
+        else if (charcode < 0x800) {
+          utf8.push(0xc0 | (charcode >> 6),
+              0x80 | (charcode & 0x3f));
+        }
+        else if (charcode < 0xd800 || charcode >= 0xe000) {
+          utf8.push(0xe0 | (charcode >> 12),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+        // surrogate pair
+        else {
+          i++;
+          // UTF-16 encodes 0x10000-0x10FFFF by
+          // subtracting 0x10000 and splitting the
+          // 20 bits of 0x0-0xFFFFF into two halves
+          charcode = 0x10000 + (((charcode & 0x3ff)<<10)
+            | (str.charCodeAt(i) & 0x3ff));
+          utf8.push(0xf0 | (charcode >>18),
+              0x80 | ((charcode>>12) & 0x3f),
+              0x80 | ((charcode>>6) & 0x3f),
+              0x80 | (charcode & 0x3f));
+        }
+      }
+      return utf8;
+    }
+    return toUTF8Array(s);
+  };
+
+}();
+
+(function (factory) {
+  if (typeof define === 'function' && define.amd) {
+      define([], factory);
+  } else if (typeof exports === 'object') {
+      module.exports = factory();
+  }
+}(function () {
+    return qrcode;
+}));
+
+  </script>
+
+  <script>
+    (function () {
+      // Decode Base64 Customer Master Template
+      const b64Template = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgPG1ldGEgY2hhcnNldD0iVVRGLTgiIC8+CiAgPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAsIG1heGltdW0tc2NhbGU9NS4wIiAvPgogIDx0aXRsZT5BIENocmlzdG1hcyBTdXJwcmlzZSBGb3IgWW91IMK3IDIwMjY8L3RpdGxlPgogIDwhLS0KICAgIEludGVyYWN0aXZlIENocmlzdG1hcyBDYXJkLCAiMjAyNiBXcmFwcGVkIiBNZW1vcnkgU3RvcnkgJiBHb2xkIFNjcmF0Y2gtT2ZmIEdpZnQgUmV2ZWFsCiAgICBMaWNlbnNlOiBNSVQgTGljZW5zZSDigJQgMTAwJSBGcmVlIGZvciBDb21tZXJjaWFsICYgQ2xpZW50IFVzZQogIC0tPgogIDxzdHlsZT4KICAgIDpyb290IHsKICAgICAgLS1iZy1kZWVwOiAjMjQwNjBkOwogICAgICAtLWJnLW1pZDogIzNkMGIxNzsKICAgICAgLS1iZy1jYXJkOiAjZmRmOGVmOwogICAgICAtLWJnLWNhcmQtYWx0OiAjZjZlY2RiOwogICAgICAtLWluay1kYXJrOiAjMjMxNDE0OwogICAgICAtLWluay1tdXRlZDogIzY1NGU0YjsKICAgICAgLS1nb2xkLWxpZ2h0OiAjZjZkZjllOwogICAgICAtLWdvbGQtbWlkOiAjZDliMTVmOwogICAgICAtLWdvbGQtZGFyazogIzlmNzUyODsKICAgICAgLS1hY2NlbnQ6ICM4ZjFkMmM7CiAgICAgIC0tYWNjZW50LXNvZnQ6IHJnYmEoMjE3LCAxNzcsIDk1LCAwLjE4KTsKICAgICAgLS1mb250LXNlcmlmOiAnSW93YW4gT2xkIFN0eWxlJywgJ1BhbGF0aW5vIExpbm90eXBlJywgJ0Jvb2sgQW50aXF1YScsIFBhbGF0aW5vLCBHZW9yZ2lhLCBzZXJpZjsKICAgICAgLS1mb250LXNhbnM6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJ1NlZ29lIFVJJywgUm9ib3RvLCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOwogICAgfQoKICAgIGJvZHlbZGF0YS10aGVtZT0iZW1lcmFsZC1waW5lIl0gewogICAgICAtLWJnLWRlZXA6ICMwNzE5MTE7CiAgICAgIC0tYmctbWlkOiAjMGYzMDIyOwogICAgICAtLWJnLWNhcmQ6ICNmYmY4ZjE7CiAgICAgIC0tYmctY2FyZC1hbHQ6ICNmMWVhZGI7CiAgICAgIC0taW5rLWRhcms6ICMxMzI0MWM7CiAgICAgIC0taW5rLW11dGVkOiAjNGI2MTU2OwogICAgICAtLWdvbGQtbGlnaHQ6ICNmNWRmOWQ7CiAgICAgIC0tZ29sZC1taWQ6ICNkNGFkNTk7CiAgICAgIC0tZ29sZC1kYXJrOiAjOTQ2ZjIyOwogICAgICAtLWFjY2VudDogIzE4NTgzYjsKICAgICAgLS1hY2NlbnQtc29mdDogcmdiYSgyMTIsIDE3MywgODksIDAuMTgpOwogICAgfQoKICAgIGJvZHlbZGF0YS10aGVtZT0ibWlkbmlnaHQtc3RhcmxpZ2h0Il0gewogICAgICAtLWJnLWRlZXA6ICMwNjBkMWY7CiAgICAgIC0tYmctbWlkOiAjMTAyMDQyOwogICAgICAtLWJnLWNhcmQ6ICNmOWZhZmM7CiAgICAgIC0tYmctY2FyZC1hbHQ6ICNlZGYxZjg7CiAgICAgIC0taW5rLWRhcms6ICMxMTFiMzA7CiAgICAgIC0taW5rLW11dGVkOiAjNGQ1Yjc4OwogICAgICAtLWdvbGQtbGlnaHQ6ICNmMmUyYjM7CiAgICAgIC0tZ29sZC1taWQ6ICNkMmI0NmM7CiAgICAgIC0tZ29sZC1kYXJrOiAjOGU3MDMwOwogICAgICAtLWFjY2VudDogIzFlM2Q3ODsKICAgICAgLS1hY2NlbnQtc29mdDogcmdiYSgyMTAsIDE4MCwgMTA4LCAwLjE4KTsKICAgIH0KCiAgICBib2R5W2RhdGEtdGhlbWU9IndpbnRlci1yb3NlIl0gewogICAgICAtLWJnLWRlZXA6ICMyNDBiMTc7CiAgICAgIC0tYmctbWlkOiAjNDIxNjJiOwogICAgICAtLWJnLWNhcmQ6ICNmZmY4ZjY7CiAgICAgIC0tYmctY2FyZC1hbHQ6ICNmOWViZTc7CiAgICAgIC0taW5rLWRhcms6ICMyYjEzMWQ7CiAgICAgIC0taW5rLW11dGVkOiAjNmU0YzU5OwogICAgICAtLWdvbGQtbGlnaHQ6ICNmN2Q5Y2I7CiAgICAgIC0tZ29sZC1taWQ6ICNkZjlmODk7CiAgICAgIC0tZ29sZC1kYXJrOiAjOWU1ZjRiOwogICAgICAtLWFjY2VudDogIzhjMmY1MjsKICAgICAgLS1hY2NlbnQtc29mdDogcmdiYSgyMjMsIDE1OSwgMTM3LCAwLjIpOwogICAgfQoKICAgICogewogICAgICBib3gtc2l6aW5nOiBib3JkZXItYm94OwogICAgICBtYXJnaW46IDA7CiAgICAgIHBhZGRpbmc6IDA7CiAgICB9CgogICAgaHRtbCB7CiAgICAgIHNjcm9sbC1iZWhhdmlvcjogc21vb3RoOwogICAgfQoKICAgIGJvZHkgewogICAgICBtaW4taGVpZ2h0OiAxMDB2aDsKICAgICAgYmFja2dyb3VuZDogcmFkaWFsLWdyYWRpZW50KGNpcmNsZSBhdCA1MCUgMTIlLCB2YXIoLS1iZy1taWQpIDAlLCB2YXIoLS1iZy1kZWVwKSA3MiUpOwogICAgICBjb2xvcjogdmFyKC0tYmctY2FyZCk7CiAgICAgIGZvbnQtZmFtaWx5OiB2YXIoLS1mb250LXNhbnMpOwogICAgICBvdmVyZmxvdy14OiBoaWRkZW47CiAgICAgIC13ZWJraXQtZm9udC1zbW9vdGhpbmc6IGFudGlhbGlhc2VkOwogICAgfQoKICAgIGJvZHkuZW52ZWxvcGUtbG9ja2VkIHsKICAgICAgb3ZlcmZsb3c6IGhpZGRlbjsKICAgICAgaGVpZ2h0OiAxMDB2aDsKICAgIH0KCiAgICAvKiBBbWJpZW50IFNub3cgJiBDb25mZXR0aSBDYW52YXNlcyAqLwogICAgI3Nub3dDYW52YXMsCiAgICAjY29uZmV0dGlDYW52YXMgewogICAgICBwb3NpdGlvbjogZml4ZWQ7CiAgICAgIGluc2V0OiAwOwogICAgICB3aWR0aDogMTAwJTsKICAgICAgaGVpZ2h0OiAxMDAlOwogICAgICBwb2ludGVyLWV2ZW50czogbm9uZTsKICAgICAgei1pbmRleDogMjsKICAgIH0KCiAgICAjY29uZmV0dGlDYW52YXMgewogICAgICB6LWluZGV4OiA2MDsKICAgIH0KCiAgICAvKiBGbG9hdGluZyBUb3AgQXVkaW8gQmFyICovCiAgICAudG9wLWNvbnRyb2xzIHsKICAgICAgcG9zaXRpb246IGZpeGVkOwogICAgICB0b3A6IDE2cHg7CiAgICAgIHJpZ2h0OiAxNnB4OwogICAgICB6LWluZGV4OiA1NTsKICAgICAgZGlzcGxheTogZmxleDsKICAgICAgZ2FwOiAxMHB4OwogICAgICBhbGlnbi1pdGVtczogY2VudGVyOwogICAgfQoKICAgIC5waWxsLWJ0biB7CiAgICAgIGFwcGVhcmFuY2U6IG5vbmU7CiAgICAgIGJvcmRlcjogMXB4IHNvbGlkIHJnYmEoMjQ2LCAyMjMsIDE1OCwgMC40NSk7CiAgICAgIGJhY2tncm91bmQ6IHJnYmEoMTYsIDgsIDEyLCAwLjcyKTsKICAgICAgYmFja2Ryb3AtZmlsdGVyOiBibHVyKDEwcHgpOwogICAgICAtd2Via2l0LWJhY2tkcm9wLWZpbHRlcjogYmx1cigxMHB4KTsKICAgICAgY29sb3I6IHZhcigtLWdvbGQtbGlnaHQpOwogICAgICBwYWRkaW5nOiA5cHggMTVweDsKICAgICAgYm9yZGVyLXJhZGl1czogOTk5cHg7CiAgICAgIGZvbnQtc2l6ZTogMTNweDsKICAgICAgZm9udC13ZWlnaHQ6IDYwMDsKICAgICAgbGV0dGVyLXNwYWNpbmc6IDAuMDJlbTsKICAgICAgY3Vyc29yOiBwb2ludGVyOwogICAgICBkaXNwbGF5OiBpbmxpbmUtZmxleDsKICAgICAgYWxpZ24taXRlbXM6IGNlbnRlcjsKICAgICAgZ2FwOiA3cHg7CiAgICAgIGJveC1zaGFkb3c6IDAgNnB4IDIwcHggcmdiYSgwLCAwLCAwLCAwLjM1KTsKICAgICAgdHJhbnNpdGlvbjogdHJhbnNmb3JtIDAuMnMgZWFzZSwgYm9yZGVyLWNvbG9yIDAuMnMgZWFzZSwgYmFja2dyb3VuZCAwLjJzIGVhc2U7CiAgICB9CgogICAgLnBpbGwtYnRuOmhvdmVyIHsKICAgICAgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKC0xcHgpOwogICAgICBib3JkZXItY29sb3I6IHZhcigtLWdvbGQtbGlnaHQpOwogICAgICBiYWNrZ3JvdW5kOiByZ2JhKDI4LCAxMiwgMTgsIDAuODgpOwogICAgfQoKICAgIC5tdXNpYy1iYXJzIHsKICAgICAgZGlzcGxheTogaW5saW5lLWZsZXg7CiAgICAgIGFsaWduLWl0ZW1zOiBmbGV4LWVuZDsKICAgICAgZ2FwOiAycHg7CiAgICAgIGhlaWdodDogMTJweDsKICAgIH0KCiAgICAubXVzaWMtYmFycyBzcGFuIHsKICAgICAgZGlzcGxheTogYmxvY2s7CiAgICAgIHdpZHRoOiAyLjVweDsKICAgICAgaGVpZ2h0OiA0cHg7CiAgICAgIGJhY2tncm91bmQ6IHZhcigtLWdvbGQtbGlnaHQpOwogICAgICBib3JkZXItcmFkaXVzOiAycHg7CiAgICAgIHRyYW5zaXRpb246IGhlaWdodCAwLjJzIGVhc2U7CiAgICB9CgogICAgLnBpbGwtYnRuLnBsYXlpbmcgLm11c2ljLWJhcnMgc3BhbjpudGgtY2hpbGQoMSkgeyBhbmltYXRpb246IGVxQmFyIDAuN3MgaW5maW5pdGUgZWFzZS1pbi1vdXQ7IH0KICAgIC5waWxsLWJ0bi5wbGF5aW5nIC5tdXNpYy1iYXJzIHNwYW46bnRoLWNoaWxkKDIpIHsgYW5pbWF0aW9uOiBlcUJhciAwLjU1cyBpbmZpbml0ZSBlYXNlLWluLW91dCAwLjE1czsgfQogICAgLnBpbGwtYnRuLnBsYXlpbmcgLm11c2ljLWJhcnMgc3BhbjpudGgtY2hpbGQoMykgeyBhbmltYXRpb246IGVxQmFyIDAuOHMgaW5maW5pdGUgZWFzZS1pbi1vdXQgMC4zczsgfQoKICAgIEBrZXlmcmFtZXMgZXFCYXIgewogICAgICAwJSwgMTAwJSB7IGhlaWdodDogNHB4OyB9CiAgICAgIDUwJSB7IGhlaWdodDogMTJweDsgfQogICAgfQoKICAgIC8qID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQogICAgICAgU1RBR0UgMTogTFVYVVJZIFdBWCBTRUFMIEVOVkVMT1BFIE9WRVJMQVkKICAgICAgID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PSAqLwogICAgLmVudmVsb3BlLXNjcmVlbiB7CiAgICAgIHBvc2l0aW9uOiBmaXhlZDsKICAgICAgaW5zZXQ6IDA7CiAgICAgIHotaW5kZXg6IDQ1OwogICAgICBkaXNwbGF5OiBmbGV4OwogICAgICBmbGV4LWRpcmVjdGlvbjogY29sdW1uOwogICAgICBhbGlnbi1pdGVtczogY2VudGVyOwogICAgICBqdXN0aWZ5LWNvbnRlbnQ6IGNlbnRlcjsKICAgICAgcGFkZGluZzogMjJweDsKICAgICAgYmFja2dyb3VuZDogcmFkaWFsLWdyYWRpZW50KGNpcmNsZSBhdCA1MCUgMzAlLCB2YXIoLS1iZy1taWQpIDAlLCB2YXIoLS1iZy1kZWVwKSA3OCUpOwogICAgICB0cmFuc2l0aW9uOiBvcGFjaXR5IDAuODVzIGN1YmljLWJlemllcigwLjQsIDAsIDAuMiwgMSksIHZpc2liaWxpdHkgMC44NXMgZWFzZTsKICAgIH0KCiAgICAuZW52ZWxvcGUtc2NyZWVuLm9wZW5lZCB7CiAgICAgIG9wYWNpdHk6IDA7CiAgICAgIHZpc2liaWxpdHk6IGhpZGRlbjsKICAgICAgcG9pbnRlci1ldmVudHM6IG5vbmU7CiAgICB9CgogICAgLnByZS1raWNrZXIgewogICAgICBmb250LXNpemU6IDEycHg7CiAgICAgIHRleHQtdHJhbnNmb3JtOiB1cHBlcmNhc2U7CiAgICAgIGxldHRlci1zcGFjaW5nOiAwLjI0ZW07CiAgICAgIGNvbG9yOiB2YXIoLS1nb2xkLWxpZ2h0KTsKICAgICAgb3BhY2l0eTogMC45OwogICAgICBtYXJnaW4tYm90dG9tOiAxOHB4OwogICAgICB0ZXh0LWFsaWduOiBjZW50ZXI7CiAgICB9CgogICAgLmVudmVsb3BlLXN0YWdlIHsKICAgICAgcG9zaXRpb246IHJlbGF0aXZlOwogICAgICB3aWR0aDogbWluKDQyMHB4LCA5MnZ3KTsKICAgICAgcGVyc3BlY3RpdmU6IDExMDBweDsKICAgICAgY3Vyc29yOiBwb2ludGVyOwogICAgICB1c2VyLXNlbGVjdDogbm9uZTsKICAgIH0KCiAgICAuZW52ZWxvcGUtYm94IHsKICAgICAgcG9zaXRpb246IHJlbGF0aXZlOwogICAgICB3aWR0aDogMTAwJTsKICAgICAgYXNwZWN0LXJhdGlvOiAxLjQyIC8gMTsKICAgICAgYmFja2dyb3VuZDogbGluZWFyLWdyYWRpZW50KDE2MGRlZywgdmFyKC0tYmctY2FyZCkgMCUsIHZhcigtLWJnLWNhcmQtYWx0KSAxMDAlKTsKICAgICAgYm9yZGVyLXJhZGl1czogMTRweDsKICAgICAgYm94LXNoYWRvdzoKICAgICAgICAwIDI2cHggNjBweCByZ2JhKDAsIDAsIDAsIDAuNTgpLAogICAgICAgIDAgMCAwIDFweCByZ2JhKDI0NiwgMjIzLCAxNTgsIDAuNDUpLAogICAgICAgIGluc2V0IDAgMCAzMnB4IHJnYmEoMTU5LCAxMTcsIDQwLCAwLjEyKTsKICAgICAgb3ZlcmZsb3c6IGhpZGRlbjsKICAgICAgdHJhbnNpdGlvbjogdHJhbnNmb3JtIDAuNDVzIGVhc2U7CiAgICB9CgogICAgLmVudmVsb3BlLXN0YWdlOmhvdmVyIC5lbnZlbG9wZS1ib3ggewogICAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVkoLTRweCk7CiAgICB9CgogICAgLyogR29sZCBpbm5lciBoYWlybGluZSBib3JkZXIgKi8KICAgIC5lbnZlbG9wZS1ib3g6OmJlZm9yZSB7CiAgICAgIGNvbnRlbnQ6ICIiOwogICAgICBwb3NpdGlvbjogYWJzb2x1dGU7CiAgICAgIGluc2V0OiAxMXB4OwogICAgICBib3JkZXI6IDEuNXB4IHNvbGlkIHJnYmEoMTU5LCAxMTcsIDQwLCAwLjM2KTsKICAgICAgYm9yZGVyLXJhZGl1czogOXB4OwogICAgICBwb2ludGVyLWV2ZW50czogbm9uZTsKICAgICAgei1pbmRleDogNDsKICAgIH0KCiAgICAvKiBCb3R0b20gJiBTaWRlIEVudmVsb3BlIEZvbGRzICovCiAgICAuZW52ZWxvcGUtcG9ja2V0IHsKICAgICAgcG9zaXRpb246IGFic29sdXRlOwogICAgICBpbnNldDogMDsKICAgICAgYmFja2dyb3VuZDoKICAgICAgICBsaW5lYXItZ3JhZGllbnQoMzNkZWcsIHJnYmEoMTU5LCAxMTcsIDQwLCAwLjEzKSA0OS41JSwgdHJhbnNwYXJlbnQgNTAuMiUpIGxlZnQgYm90dG9tIC8gNTElIDYyJSBuby1yZXBlYXQsCiAgICAgICAgbGluZWFyLWdyYWRpZW50KC0zM2RlZywgcmdiYSgxNTksIDExNywgNDAsIDAuMTMpIDQ5LjUlLCB0cmFuc3BhcmVudCA1MC4yJSkgcmlnaHQgYm90dG9tIC8gNTElIDYyJSBuby1yZXBlYXQ7CiAgICAgIHotaW5kZXg6IDI7CiAgICAgIHBvaW50ZXItZXZlbnRzOiBub25lOwogICAgfQoKICAgIC8qIFRvcCBGbGFwICovCiAgICAuZW52ZWxvcGUtZmxhcCB7CiAgICAgIHBvc2l0aW9uOiBhYnNvbHV0ZTsKICAgICAgdG9wOiAwOwogICAgICBsZWZ0OiAwOwogICAgICByaWdodDogMDsKICAgICAgaGVpZ2h0OiA1OCU7CiAgICAgIGJhY2tncm91bmQ6IGxpbmVhci1ncmFkaWVudCgxODBkZWcsICNmZmZkZjggMCUsIHZhcigtLWJnLWNhcmQtYWx0KSAxMDAlKTsKICAgICAgY2xpcC1wYXRoOiBwb2x5Z29uKDAgMCwgMTAwJSAwLCA1MCUgMTAwJSk7CiAgICAgIHRyYW5zZm9ybS1vcmlnaW46IHRvcCBjZW50ZXI7CiAgICAgIHRyYW5zaXRpb246IHRyYW5zZm9ybSAwLjdzIGN1YmljLWJlemllcigwLjQsIDAsIDAuMiwgMSk7CiAgICAgIHotaW5kZXg6IDU7CiAgICAgIGZpbHRlcjogZHJvcC1zaGFkb3coMCA4cHggMTJweCByZ2JhKDM1LCAyMCwgMjAsIDAuMTYpKTsKICAgIH0KCiAgICAuZW52ZWxvcGUtc3RhZ2Uub3BlbmluZyAuZW52ZWxvcGUtZmxhcCB7CiAgICAgIHRyYW5zZm9ybTogcm90YXRlWCgxNzVkZWcpOwogICAgfQoKICAgIC8qIEVudmVsb3BlIFJlY2lwaWVudCBUYWcgKi8KICAgIC5lbnZlbG9wZS1sYWJlbCB7CiAgICAgIHBvc2l0aW9uOiBhYnNvbHV0ZTsKICAgICAgYm90dG9tOiAxOHB4OwogICAgICBsZWZ0OiAyMnB4OwogICAgICByaWdodDogMjJweDsKICAgICAgdGV4dC1hbGlnbjogY2VudGVyOwogICAgICB6LWluZGV4OiA2OwogICAgICBjb2xvcjogdmFyKC0taW5rLWRhcmspOwogICAgfQoKICAgIC5lbnZlbG9wZS1mb3IgewogICAgICBmb250LXNpemU6IDExcHg7CiAgICAgIGxldHRlci1zcGFjaW5nOiAwLjJlbTsKICAgICAgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsKICAgICAgY29sb3I6IHZhcigtLWdvbGQtZGFyayk7CiAgICAgIGZvbnQtd2VpZ2h0OiA3MDA7CiAgICAgIG1hcmdpbi1ib3R0b206IDRweDsKICAgIH0KCiAgICAuZW52ZWxvcGUtcmVjaXBpZW50IHsKICAgICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtc2VyaWYpOwogICAgICBmb250LXNpemU6IGNsYW1wKDIxcHgsIDUuMnZ3LCAyOHB4KTsKICAgICAgZm9udC13ZWlnaHQ6IDcwMDsKICAgICAgY29sb3I6IHZhcigtLWluay1kYXJrKTsKICAgICAgbGluZS1oZWlnaHQ6IDEuMjsKICAgIH0KCiAgICAvKiAzRCBFbWJvc3NlZCBHb2xkIFdheCBTZWFsICovCiAgICAud2F4LXNlYWwtYnRuIHsKICAgICAgcG9zaXRpb246IGFic29sdXRlOwogICAgICB0b3A6IDUyJTsKICAgICAgbGVmdDogNTAlOwogICAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZSgtNTAlLCAtNTAlKTsKICAgICAgei1pbmRleDogODsKICAgICAgd2lkdGg6IDg4cHg7CiAgICAgIGhlaWdodDogODhweDsKICAgICAgYm9yZGVyLXJhZGl1czogNTAlOwogICAgICBib3JkZXI6IG5vbmU7CiAgICAgIGJhY2tncm91bmQ6IHJhZGlhbC1ncmFkaWVudChjaXJjbGUgYXQgMzUlIDMwJSwgI2ZiZTdhOCAwJSwgI2Q3YTg0OSA0OCUsICM4ZTYxMTYgOTUlKTsKICAgICAgYm94LXNoYWRvdzoKICAgICAgICAwIDEwcHggMjRweCByZ2JhKDAsIDAsIDAsIDAuNDIpLAogICAgICAgIDAgMCAwIDRweCByZ2JhKDI0NiwgMjIzLCAxNTgsIDAuMjgpLAogICAgICAgIGluc2V0IDAgM3B4IDZweCByZ2JhKDI1NSwgMjU1LCAyNTUsIDAuNjUpLAogICAgICAgIGluc2V0IDAgLTRweCA4cHggcmdiYSg4NCwgNTIsIDYsIDAuNyk7CiAgICAgIGN1cnNvcjogcG9pbnRlcjsKICAgICAgZGlzcGxheTogZmxleDsKICAgICAgZmxleC1kaXJlY3Rpb246IGNvbHVtbjsKICAgICAgYWxpZ24taXRlbXM6IGNlbnRlcjsKICAgICAganVzdGlmeS1jb250ZW50OiBjZW50ZXI7CiAgICAgIGNvbG9yOiAjNGEyZTA0OwogICAgICBmb250LWZhbWlseTogdmFyKC0tZm9udC1zZXJpZik7CiAgICAgIHRyYW5zaXRpb246IHRyYW5zZm9ybSAwLjM1cyBlYXNlLCBvcGFjaXR5IDAuMzVzIGVhc2U7CiAgICAgIGFuaW1hdGlvbjogc2VhbFB1bHNlIDIuNHMgaW5maW5pdGUgZWFzZS1pbi1vdXQ7CiAgICB9CgogICAgLndheC1zZWFsLWJ0bjo6YmVmb3JlIHsKICAgICAgY29udGVudDogIiI7CiAgICAgIHBvc2l0aW9uOiBhYnNvbHV0ZTsKICAgICAgaW5zZXQ6IDhweDsKICAgICAgYm9yZGVyLXJhZGl1czogNTAlOwogICAgICBib3JkZXI6IDEuNXB4IGRhc2hlZCByZ2JhKDc0LCA0NiwgNCwgMC40NSk7CiAgICB9CgogICAgLndheC1zZWFsLXN0YXIgewogICAgICBmb250LXNpemU6IDIycHg7CiAgICAgIGxpbmUtaGVpZ2h0OiAxOwogICAgICBtYXJnaW4tYm90dG9tOiAycHg7CiAgICB9CgogICAgLndheC1zZWFsLXllYXIgewogICAgICBmb250LXNpemU6IDExcHg7CiAgICAgIGZvbnQtd2VpZ2h0OiA4MDA7CiAgICAgIGxldHRlci1zcGFjaW5nOiAwLjE0ZW07CiAgICB9CgogICAgLmVudmVsb3BlLXN0YWdlLm9wZW5pbmcgLndheC1zZWFsLWJ0biB7CiAgICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlKC01MCUsIC01MCUpIHNjYWxlKDAuNSk7CiAgICAgIG9wYWNpdHk6IDA7CiAgICB9CgogICAgQGtleWZyYW1lcyBzZWFsUHVsc2UgewogICAgICAwJSwgMTAwJSB7CiAgICAgICAgYm94LXNoYWRvdzoKICAgICAgICAgIDAgMTBweCAyNHB4IHJnYmEoMCwgMCwgMCwgMC40MiksCiAgICAgICAgICAwIDAgMCA0cHggcmdiYSgyNDYsIDIyMywgMTU4LCAwLjI1KSwKICAgICAgICAgIGluc2V0IDAgM3B4IDZweCByZ2JhKDI1NSwgMjU1LCAyNTUsIDAuNjUpLAogICAgICAgICAgaW5zZXQgMCAtNHB4IDhweCByZ2JhKDg0LCA1MiwgNiwgMC43KTsKICAgICAgfQogICAgICA1MCUgewogICAgICAgIGJveC1zaGFkb3c6CiAgICAgICAgICAwIDEycHggMzBweCByZ2JhKDAsIDAsIDAsIDAuNSksCiAgICAgICAgICAwIDAgMCAxMXB4IHJnYmEoMjQ2LCAyMjMsIDE1OCwgMC4xNCksCiAgICAgICAgICBpbnNldCAwIDNweCA2cHggcmdiYSgyNTUsIDI1NSwgMjU1LCAwLjc1KSwKICAgICAgICAgIGluc2V0IDAgLTRweCA4cHggcmdiYSg4NCwgNTIsIDYsIDAuNyk7CiAgICAgIH0KICAgIH0KCiAgICAudGFwLWhpbnQgewogICAgICBtYXJnaW4tdG9wOiAyMnB4OwogICAgICBmb250LXNpemU6IDE0cHg7CiAgICAgIGNvbG9yOiB2YXIoLS1nb2xkLWxpZ2h0KTsKICAgICAgbGV0dGVyLXNwYWNpbmc6IDAuMDZlbTsKICAgICAgZGlzcGxheTogZmxleDsKICAgICAgYWxpZ24taXRlbXM6IGNlbnRlcjsKICAgICAgZ2FwOiA4cHg7CiAgICAgIG9wYWNpdHk6IDAuOTI7CiAgICB9CgogICAgLmVudmVsb3BlLWZyb20gewogICAgICBtYXJnaW4tdG9wOiA4cHg7CiAgICAgIGZvbnQtc2l6ZTogMTNweDsKICAgICAgY29sb3I6IHJnYmEoMjUzLCAyNDgsIDIzOSwgMC43KTsKICAgIH0KCiAgICAvKiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KICAgICAgIE1BSU4gU0NST0xMQUJMRSBTVE9SWSBFWFBFUklFTkNFCiAgICAgICA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0gKi8KICAgIC5zdG9yeS1jb250YWluZXIgewogICAgICBwb3NpdGlvbjogcmVsYXRpdmU7CiAgICAgIHotaW5kZXg6IDU7CiAgICAgIG1heC13aWR0aDogNzgwcHg7CiAgICAgIG1hcmdpbjogMCBhdXRvOwogICAgICBwYWRkaW5nOiA2OHB4IDE4cHggOTBweDsKICAgICAgb3BhY2l0eTogMDsKICAgICAgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKDI0cHgpOwogICAgICB0cmFuc2l0aW9uOiBvcGFjaXR5IDAuOXMgZWFzZSAwLjJzLCB0cmFuc2Zvcm0gMC45cyBlYXNlIDAuMnM7CiAgICB9CgogICAgLnN0b3J5LWNvbnRhaW5lci52aXNpYmxlIHsKICAgICAgb3BhY2l0eTogMTsKICAgICAgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKDApOwogICAgfQoKICAgIC8qIEhlcm8gR3JlZXRpbmcgSGVhZGVyICovCiAgICAuaGVyby1zZWN0aW9uIHsKICAgICAgdGV4dC1hbGlnbjogY2VudGVyOwogICAgICBwYWRkaW5nOiAyMHB4IDEwcHggMzhweDsKICAgIH0KCiAgICAuY291bnRkb3duLWJhZGdlIHsKICAgICAgZGlzcGxheTogaW5saW5lLWZsZXg7CiAgICAgIGFsaWduLWl0ZW1zOiBjZW50ZXI7CiAgICAgIGdhcDogOHB4OwogICAgICBwYWRkaW5nOiA3cHggMTZweDsKICAgICAgYm9yZGVyLXJhZGl1czogOTk5cHg7CiAgICAgIGJhY2tncm91bmQ6IHZhcigtLWFjY2VudC1zb2Z0KTsKICAgICAgYm9yZGVyOiAxcHggc29saWQgcmdiYSgyNDYsIDIyMywgMTU4LCAwLjM1KTsKICAgICAgY29sb3I6IHZhcigtLWdvbGQtbGlnaHQpOwogICAgICBmb250LXNpemU6IDEyLjVweDsKICAgICAgZm9udC13ZWlnaHQ6IDYwMDsKICAgICAgbGV0dGVyLXNwYWNpbmc6IDAuMDhlbTsKICAgICAgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsKICAgICAgbWFyZ2luLWJvdHRvbTogMjBweDsKICAgIH0KCiAgICAuaGVyby1vcm5hbWVudCB7CiAgICAgIHdpZHRoOiAxNTBweDsKICAgICAgaGVpZ2h0OiAyNnB4OwogICAgICBtYXJnaW46IDAgYXV0byAxNHB4OwogICAgICBjb2xvcjogdmFyKC0tZ29sZC1taWQpOwogICAgICBvcGFjaXR5OiAwLjk7CiAgICB9CgogICAgLmhlcm8tdGl0bGUgewogICAgICBmb250LWZhbWlseTogdmFyKC0tZm9udC1zZXJpZik7CiAgICAgIGZvbnQtc2l6ZTogY2xhbXAoMzJweCwgNy4ydncsIDU0cHgpOwogICAgICBsaW5lLWhlaWdodDogMS4xMjsKICAgICAgZm9udC13ZWlnaHQ6IDcwMDsKICAgICAgYmFja2dyb3VuZDogbGluZWFyLWdyYWRpZW50KDE4MGRlZywgI2ZmZmZmZiAwJSwgdmFyKC0tZ29sZC1saWdodCkgOTUlKTsKICAgICAgLXdlYmtpdC1iYWNrZ3JvdW5kLWNsaXA6IHRleHQ7CiAgICAgIGJhY2tncm91bmQtY2xpcDogdGV4dDsKICAgICAgY29sb3I6IHRyYW5zcGFyZW50OwogICAgICBtYXJnaW4tYm90dG9tOiAxNnB4OwogICAgfQoKICAgIC5oZXJvLXN1YnRpdGxlIHsKICAgICAgZm9udC1zaXplOiBjbGFtcCgxNnB4LCAzLjh2dywgMTlweCk7CiAgICAgIGxpbmUtaGVpZ2h0OiAxLjY7CiAgICAgIGNvbG9yOiByZ2JhKDI1MywgMjQ4LCAyMzksIDAuODgpOwogICAgICBtYXgtd2lkdGg6IDU4MHB4OwogICAgICBtYXJnaW46IDAgYXV0byAyOHB4OwogICAgfQoKICAgIC8qIDIwMjYgV3JhcHBlZCBTdGF0cyBSb3cgKi8KICAgIC5zdGF0cy1ncmlkIHsKICAgICAgZGlzcGxheTogZ3JpZDsKICAgICAgZ3JpZC10ZW1wbGF0ZS1jb2x1bW5zOiByZXBlYXQoMywgMWZyKTsKICAgICAgZ2FwOiAxMnB4OwogICAgICBtYXJnaW46IDEwcHggYXV0byA4cHg7CiAgICAgIG1heC13aWR0aDogNjQwcHg7CiAgICB9CgogICAgLnN0YXQtY2FyZCB7CiAgICAgIGJhY2tncm91bmQ6IHJnYmEoMjU1LCAyNTUsIDI1NSwgMC4wNik7CiAgICAgIGJvcmRlcjogMXB4IHNvbGlkIHJnYmEoMjQ2LCAyMjMsIDE1OCwgMC4yNCk7CiAgICAgIGJvcmRlci1yYWRpdXM6IDE2cHg7CiAgICAgIHBhZGRpbmc6IDE2cHggMTBweDsKICAgICAgYmFja2Ryb3AtZmlsdGVyOiBibHVyKDhweCk7CiAgICAgIC13ZWJraXQtYmFja2Ryb3AtZmlsdGVyOiBibHVyKDhweCk7CiAgICB9CgogICAgLnN0YXQtbnVtYmVyIHsKICAgICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtc2VyaWYpOwogICAgICBmb250LXNpemU6IGNsYW1wKDIycHgsIDV2dywgMzJweCk7CiAgICAgIGZvbnQtd2VpZ2h0OiA3MDA7CiAgICAgIGNvbG9yOiB2YXIoLS1nb2xkLWxpZ2h0KTsKICAgICAgbGluZS1oZWlnaHQ6IDEuMTsKICAgICAgbWFyZ2luLWJvdHRvbTogNXB4OwogICAgfQoKICAgIC5zdGF0LWxhYmVsIHsKICAgICAgZm9udC1zaXplOiAxMnB4OwogICAgICBjb2xvcjogcmdiYSgyNTMsIDI0OCwgMjM5LCAwLjgpOwogICAgICBsaW5lLWhlaWdodDogMS4zNTsKICAgIH0KCiAgICAvKiBTZWN0aW9uIEhlYWRlcnMgKi8KICAgIC5zZWN0aW9uLWJsb2NrIHsKICAgICAgbWFyZ2luLXRvcDogNDZweDsKICAgIH0KCiAgICAuc2VjdGlvbi1leWVicm93IHsKICAgICAgdGV4dC1hbGlnbjogY2VudGVyOwogICAgICBmb250LXNpemU6IDExLjVweDsKICAgICAgdGV4dC10cmFuc2Zvcm06IHVwcGVyY2FzZTsKICAgICAgbGV0dGVyLXNwYWNpbmc6IDAuMjJlbTsKICAgICAgY29sb3I6IHZhcigtLWdvbGQtbWlkKTsKICAgICAgbWFyZ2luLWJvdHRvbTogOHB4OwogICAgICBmb250LXdlaWdodDogNzAwOwogICAgfQoKICAgIC5zZWN0aW9uLWhlYWRpbmcgewogICAgICB0ZXh0LWFsaWduOiBjZW50ZXI7CiAgICAgIGZvbnQtZmFtaWx5OiB2YXIoLS1mb250LXNlcmlmKTsKICAgICAgZm9udC1zaXplOiBjbGFtcCgyNXB4LCA1LjV2dywgMzRweCk7CiAgICAgIGNvbG9yOiB2YXIoLS1iZy1jYXJkKTsKICAgICAgbWFyZ2luLWJvdHRvbTogOHB4OwogICAgfQoKICAgIC5zZWN0aW9uLXN1YiB7CiAgICAgIHRleHQtYWxpZ246IGNlbnRlcjsKICAgICAgZm9udC1zaXplOiAxNC41cHg7CiAgICAgIGNvbG9yOiByZ2JhKDI1MywgMjQ4LCAyMzksIDAuNzYpOwogICAgICBtYXJnaW4tYm90dG9tOiAyNnB4OwogICAgfQoKICAgIC8qID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQogICAgICAgU1RBR0UgMzogUE9MQVJPSUQgTUVNT1JZIEdBTExFUlkKICAgICAgID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PSAqLwogICAgLnBvbGFyb2lkLWdyaWQgewogICAgICBkaXNwbGF5OiBncmlkOwogICAgICBncmlkLXRlbXBsYXRlLWNvbHVtbnM6IHJlcGVhdCgyLCAxZnIpOwogICAgICBnYXA6IDIycHg7CiAgICB9CgogICAgQG1lZGlhIChtYXgtd2lkdGg6IDYwMHB4KSB7CiAgICAgIC5wb2xhcm9pZC1ncmlkIHsKICAgICAgICBncmlkLXRlbXBsYXRlLWNvbHVtbnM6IDFmcjsKICAgICAgICBnYXA6IDIwcHg7CiAgICAgICAgbWF4LXdpZHRoOiAzOTBweDsKICAgICAgICBtYXJnaW46IDAgYXV0bzsKICAgICAgfQogICAgICAuc3RhdHMtZ3JpZCB7CiAgICAgICAgZ2FwOiA4cHg7CiAgICAgIH0KICAgICAgLnN0YXQtY2FyZCB7CiAgICAgICAgcGFkZGluZzogMTNweCA2cHg7CiAgICAgIH0KICAgIH0KCiAgICAucG9sYXJvaWQtY2FyZCB7CiAgICAgIGJhY2tncm91bmQ6IHZhcigtLWJnLWNhcmQpOwogICAgICBjb2xvcjogdmFyKC0taW5rLWRhcmspOwogICAgICBwYWRkaW5nOiAxM3B4IDEzcHggMThweDsKICAgICAgYm9yZGVyLXJhZGl1czogMTBweDsKICAgICAgYm94LXNoYWRvdzoKICAgICAgICAwIDE4cHggMzhweCByZ2JhKDAsIDAsIDAsIDAuNDIpLAogICAgICAgIDAgMCAwIDFweCByZ2JhKDI1NSwgMjU1LCAyNTUsIDAuNSk7CiAgICAgIHRyYW5zaXRpb246IHRyYW5zZm9ybSAwLjNzIGVhc2UsIGJveC1zaGFkb3cgMC4zcyBlYXNlOwogICAgICBwb3NpdGlvbjogcmVsYXRpdmU7CiAgICB9CgogICAgLnBvbGFyb2lkLWNhcmQ6bnRoLWNoaWxkKG9kZCkgewogICAgICB0cmFuc2Zvcm06IHJvdGF0ZSgtMS4zZGVnKTsKICAgIH0KCiAgICAucG9sYXJvaWQtY2FyZDpudGgtY2hpbGQoZXZlbikgewogICAgICB0cmFuc2Zvcm06IHJvdGF0ZSgxLjNkZWcpOwogICAgfQoKICAgIC5wb2xhcm9pZC1jYXJkOmhvdmVyIHsKICAgICAgdHJhbnNmb3JtOiByb3RhdGUoMGRlZykgdHJhbnNsYXRlWSgtNXB4KTsKICAgICAgYm94LXNoYWRvdzogMCAyNHB4IDQ4cHggcmdiYSgwLCAwLCAwLCAwLjU1KTsKICAgICAgei1pbmRleDogMzsKICAgIH0KCiAgICAucG9sYXJvaWQtZnJhbWUgewogICAgICBwb3NpdGlvbjogcmVsYXRpdmU7CiAgICAgIHdpZHRoOiAxMDAlOwogICAgICBhc3BlY3QtcmF0aW86IDQgLyAzLjQ7CiAgICAgIGJvcmRlci1yYWRpdXM6IDZweDsKICAgICAgb3ZlcmZsb3c6IGhpZGRlbjsKICAgICAgYmFja2dyb3VuZDogIzJhMTYxYjsKICAgICAgbWFyZ2luLWJvdHRvbTogMTNweDsKICAgIH0KCiAgICAucG9sYXJvaWQtZnJhbWUgaW1nLAogICAgLnBvbGFyb2lkLWZyYW1lIHN2ZyB7CiAgICAgIHdpZHRoOiAxMDAlOwogICAgICBoZWlnaHQ6IDEwMCU7CiAgICAgIG9iamVjdC1maXQ6IGNvdmVyOwogICAgICBkaXNwbGF5OiBibG9jazsKICAgIH0KCiAgICAucG9sYXJvaWQtZGF0ZSB7CiAgICAgIHBvc2l0aW9uOiBhYnNvbHV0ZTsKICAgICAgdG9wOiAxMHB4OwogICAgICBsZWZ0OiAxMHB4OwogICAgICBiYWNrZ3JvdW5kOiByZ2JhKDE4LCAxMCwgMTIsIDAuNzIpOwogICAgICBiYWNrZHJvcC1maWx0ZXI6IGJsdXIoNnB4KTsKICAgICAgY29sb3I6IHZhcigtLWdvbGQtbGlnaHQpOwogICAgICBwYWRkaW5nOiA0cHggMTBweDsKICAgICAgYm9yZGVyLXJhZGl1czogOTk5cHg7CiAgICAgIGZvbnQtc2l6ZTogMTFweDsKICAgICAgZm9udC13ZWlnaHQ6IDYwMDsKICAgICAgbGV0dGVyLXNwYWNpbmc6IDAuMDVlbTsKICAgIH0KCiAgICAubGlrZS1oZWFydC1idG4gewogICAgICBwb3NpdGlvbjogYWJzb2x1dGU7CiAgICAgIGJvdHRvbTogMTBweDsKICAgICAgcmlnaHQ6IDEwcHg7CiAgICAgIHdpZHRoOiAzNHB4OwogICAgICBoZWlnaHQ6IDM0cHg7CiAgICAgIGJvcmRlci1yYWRpdXM6IDUwJTsKICAgICAgYm9yZGVyOiBub25lOwogICAgICBiYWNrZ3JvdW5kOiByZ2JhKDI1NSwgMjU1LCAyNTUsIDAuOSk7CiAgICAgIGNvbG9yOiAjYjQyMzM4OwogICAgICBmb250LXNpemU6IDE2cHg7CiAgICAgIGN1cnNvcjogcG9pbnRlcjsKICAgICAgZGlzcGxheTogZmxleDsKICAgICAgYWxpZ24taXRlbXM6IGNlbnRlcjsKICAgICAganVzdGlmeS1jb250ZW50OiBjZW50ZXI7CiAgICAgIGJveC1zaGFkb3c6IDAgNHB4IDEycHggcmdiYSgwLCAwLCAwLCAwLjI1KTsKICAgICAgdHJhbnNpdGlvbjogdHJhbnNmb3JtIDAuMnMgZWFzZTsKICAgIH0KCiAgICAubGlrZS1oZWFydC1idG46YWN0aXZlLAogICAgLmxpa2UtaGVhcnQtYnRuLmxpa2VkIHsKICAgICAgdHJhbnNmb3JtOiBzY2FsZSgxLjE4KTsKICAgICAgYmFja2dyb3VuZDogI2ZmZTRlODsKICAgIH0KCiAgICAucG9sYXJvaWQtdGl0bGUgewogICAgICBmb250LWZhbWlseTogdmFyKC0tZm9udC1zZXJpZik7CiAgICAgIGZvbnQtc2l6ZTogMThweDsKICAgICAgZm9udC13ZWlnaHQ6IDcwMDsKICAgICAgY29sb3I6IHZhcigtLWluay1kYXJrKTsKICAgICAgbWFyZ2luLWJvdHRvbTogNHB4OwogICAgfQoKICAgIC5wb2xhcm9pZC1jYXB0aW9uIHsKICAgICAgZm9udC1zaXplOiAxMy41cHg7CiAgICAgIGxpbmUtaGVpZ2h0OiAxLjU7CiAgICAgIGNvbG9yOiB2YXIoLS1pbmstbXV0ZWQpOwogICAgfQoKICAgIC8qID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQogICAgICAgU1RBR0UgNDogSU5URVJBQ1RJVkUgR09MRCBTQ1JBVENILU9GRiBDQVJECiAgICAgICA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0gKi8KICAgIC5zY3JhdGNoLXdyYXBwZXIgewogICAgICBiYWNrZ3JvdW5kOiBsaW5lYXItZ3JhZGllbnQoMTYwZGVnLCB2YXIoLS1iZy1jYXJkKSAwJSwgdmFyKC0tYmctY2FyZC1hbHQpIDEwMCUpOwogICAgICBib3JkZXItcmFkaXVzOiAxOHB4OwogICAgICBwYWRkaW5nOiAyNHB4IDIwcHg7CiAgICAgIGNvbG9yOiB2YXIoLS1pbmstZGFyayk7CiAgICAgIGJveC1zaGFkb3c6CiAgICAgICAgMCAyNHB4IDU1cHggcmdiYSgwLCAwLCAwLCAwLjQ4KSwKICAgICAgICAwIDAgMCAycHggcmdiYSgyNDYsIDIyMywgMTU4LCAwLjU1KTsKICAgICAgcG9zaXRpb246IHJlbGF0aXZlOwogICAgICBvdmVyZmxvdzogaGlkZGVuOwogICAgfQoKICAgIC5zY3JhdGNoLXdyYXBwZXI6OmJlZm9yZSB7CiAgICAgIGNvbnRlbnQ6ICIiOwogICAgICBwb3NpdGlvbjogYWJzb2x1dGU7CiAgICAgIGluc2V0OiAxMHB4OwogICAgICBib3JkZXI6IDEuNXB4IGRhc2hlZCByZ2JhKDE1OSwgMTE3LCA0MCwgMC40Mik7CiAgICAgIGJvcmRlci1yYWRpdXM6IDEycHg7CiAgICAgIHBvaW50ZXItZXZlbnRzOiBub25lOwogICAgfQoKICAgIC5zY3JhdGNoLWhlYWRlciB7CiAgICAgIHRleHQtYWxpZ246IGNlbnRlcjsKICAgICAgbWFyZ2luLWJvdHRvbTogMTZweDsKICAgICAgcG9zaXRpb246IHJlbGF0aXZlOwogICAgICB6LWluZGV4OiAyOwogICAgfQoKICAgIC5zY3JhdGNoLWtpY2tlciB7CiAgICAgIGZvbnQtc2l6ZTogMTFweDsKICAgICAgZm9udC13ZWlnaHQ6IDgwMDsKICAgICAgbGV0dGVyLXNwYWNpbmc6IDAuMmVtOwogICAgICB0ZXh0LXRyYW5zZm9ybTogdXBwZXJjYXNlOwogICAgICBjb2xvcjogdmFyKC0tYWNjZW50KTsKICAgICAgbWFyZ2luLWJvdHRvbTogNHB4OwogICAgfQoKICAgIC5zY3JhdGNoLXRpdGxlIHsKICAgICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtc2VyaWYpOwogICAgICBmb250LXNpemU6IGNsYW1wKDIycHgsIDQuOHZ3LCAyOHB4KTsKICAgICAgY29sb3I6IHZhcigtLWluay1kYXJrKTsKICAgIH0KCiAgICAuc2NyYXRjaC1zdGFnZSB7CiAgICAgIHBvc2l0aW9uOiByZWxhdGl2ZTsKICAgICAgd2lkdGg6IDEwMCU7CiAgICAgIG1heC13aWR0aDogNTIwcHg7CiAgICAgIG1pbi1oZWlnaHQ6IDIxMHB4OwogICAgICBtYXJnaW46IDAgYXV0bzsKICAgICAgYm9yZGVyLXJhZGl1czogMTRweDsKICAgICAgb3ZlcmZsb3c6IGhpZGRlbjsKICAgICAgYmFja2dyb3VuZDogcmFkaWFsLWdyYWRpZW50KGNpcmNsZSBhdCA1MCUgMjUlLCAjZmZmZGY4IDAlLCAjZjVlNmM4IDEwMCUpOwogICAgICBib3JkZXI6IDJweCBzb2xpZCB2YXIoLS1nb2xkLW1pZCk7CiAgICAgIGJveC1zaGFkb3c6IGluc2V0IDAgMnB4IDE0cHggcmdiYSgxNTksIDExNywgNDAsIDAuMik7CiAgICAgIGRpc3BsYXk6IGZsZXg7CiAgICAgIGFsaWduLWl0ZW1zOiBjZW50ZXI7CiAgICAgIGp1c3RpZnktY29udGVudDogY2VudGVyOwogICAgICBwYWRkaW5nOiAyNHB4IDIwcHg7CiAgICAgIHRleHQtYWxpZ246IGNlbnRlcjsKICAgIH0KCiAgICAucHJpemUtY29udGVudCB7CiAgICAgIHBvc2l0aW9uOiByZWxhdGl2ZTsKICAgICAgei1pbmRleDogMTsKICAgICAgbWF4LXdpZHRoOiA0MzBweDsKICAgIH0KCiAgICAucHJpemUtZW1vamkgewogICAgICBmb250LXNpemU6IDM4cHg7CiAgICAgIGxpbmUtaGVpZ2h0OiAxOwogICAgICBtYXJnaW4tYm90dG9tOiAxMHB4OwogICAgfQoKICAgIC5wcml6ZS1oZWFkbGluZSB7CiAgICAgIGZvbnQtZmFtaWx5OiB2YXIoLS1mb250LXNlcmlmKTsKICAgICAgZm9udC1zaXplOiBjbGFtcCgyMXB4LCA0Ljh2dywgMjdweCk7CiAgICAgIGZvbnQtd2VpZ2h0OiA3MDA7CiAgICAgIGNvbG9yOiB2YXIoLS1hY2NlbnQpOwogICAgICBtYXJnaW4tYm90dG9tOiA4cHg7CiAgICAgIGxpbmUtaGVpZ2h0OiAxLjI1OwogICAgfQoKICAgIC5wcml6ZS1kZXRhaWxzIHsKICAgICAgZm9udC1zaXplOiAxNC41cHg7CiAgICAgIGxpbmUtaGVpZ2h0OiAxLjU1OwogICAgICBjb2xvcjogdmFyKC0taW5rLWRhcmspOwogICAgICBtYXJnaW4tYm90dG9tOiAxMnB4OwogICAgfQoKICAgIC5wcml6ZS1jb2RlIHsKICAgICAgZGlzcGxheTogaW5saW5lLWJsb2NrOwogICAgICBwYWRkaW5nOiA2cHggMTRweDsKICAgICAgYm9yZGVyLXJhZGl1czogOTk5cHg7CiAgICAgIGJhY2tncm91bmQ6IHJnYmEoMTQzLCAyOSwgNDQsIDAuMSk7CiAgICAgIGJvcmRlcjogMXB4IHNvbGlkIHJnYmEoMTQzLCAyOSwgNDQsIDAuMyk7CiAgICAgIGNvbG9yOiB2YXIoLS1hY2NlbnQpOwogICAgICBmb250LXNpemU6IDEyLjVweDsKICAgICAgZm9udC13ZWlnaHQ6IDcwMDsKICAgICAgbGV0dGVyLXNwYWNpbmc6IDAuMDZlbTsKICAgIH0KCiAgICAjc2NyYXRjaENhbnZhcyB7CiAgICAgIHBvc2l0aW9uOiBhYnNvbHV0ZTsKICAgICAgaW5zZXQ6IDA7CiAgICAgIHdpZHRoOiAxMDAlOwogICAgICBoZWlnaHQ6IDEwMCU7CiAgICAgIHotaW5kZXg6IDQ7CiAgICAgIGN1cnNvcjogZ3JhYjsKICAgICAgdG91Y2gtYWN0aW9uOiBub25lOwogICAgICB0cmFuc2l0aW9uOiBvcGFjaXR5IDAuNjVzIGVhc2U7CiAgICB9CgogICAgI3NjcmF0Y2hDYW52YXMucmV2ZWFsZWQgewogICAgICBvcGFjaXR5OiAwOwogICAgICBwb2ludGVyLWV2ZW50czogbm9uZTsKICAgIH0KCiAgICAuc2NyYXRjaC1mb290ZXIgewogICAgICBtYXJnaW4tdG9wOiAxMnB4OwogICAgICBkaXNwbGF5OiBmbGV4OwogICAgICBqdXN0aWZ5LWNvbnRlbnQ6IHNwYWNlLWJldHdlZW47CiAgICAgIGFsaWduLWl0ZW1zOiBjZW50ZXI7CiAgICAgIG1heC13aWR0aDogNTIwcHg7CiAgICAgIG1hcmdpbi1sZWZ0OiBhdXRvOwogICAgICBtYXJnaW4tcmlnaHQ6IGF1dG87CiAgICAgIGZvbnQtc2l6ZTogMTIuNXB4OwogICAgICBjb2xvcjogdmFyKC0taW5rLW11dGVkKTsKICAgICAgcG9zaXRpb246IHJlbGF0aXZlOwogICAgICB6LWluZGV4OiAyOwogICAgfQoKICAgIC5saW5rLXJlc2V0IHsKICAgICAgYmFja2dyb3VuZDogbm9uZTsKICAgICAgYm9yZGVyOiBub25lOwogICAgICBjb2xvcjogdmFyKC0tYWNjZW50KTsKICAgICAgZm9udC13ZWlnaHQ6IDYwMDsKICAgICAgdGV4dC1kZWNvcmF0aW9uOiB1bmRlcmxpbmU7CiAgICAgIGN1cnNvcjogcG9pbnRlcjsKICAgICAgZm9udC1zaXplOiAxMi41cHg7CiAgICB9CgogICAgLyogPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CiAgICAgICBTVEFHRSA1OiBQRVJTT05BTCBLRUVQU0FLRSBMRVRURVIKICAgICAgID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PSAqLwogICAgLmxldHRlci1wYXBlciB7CiAgICAgIGJhY2tncm91bmQ6IGxpbmVhci1ncmFkaWVudCgxODBkZWcsIHZhcigtLWJnLWNhcmQpIDAlLCB2YXIoLS1iZy1jYXJkLWFsdCkgMTAwJSk7CiAgICAgIGNvbG9yOiB2YXIoLS1pbmstZGFyayk7CiAgICAgIGJvcmRlci1yYWRpdXM6IDE2cHg7CiAgICAgIHBhZGRpbmc6IGNsYW1wKDI2cHgsIDZ2dywgNDZweCk7CiAgICAgIGJveC1zaGFkb3c6CiAgICAgICAgMCAyMnB4IDUwcHggcmdiYSgwLCAwLCAwLCAwLjQ1KSwKICAgICAgICAwIDAgMCAxcHggcmdiYSgyNDYsIDIyMywgMTU4LCAwLjQpOwogICAgICBwb3NpdGlvbjogcmVsYXRpdmU7CiAgICB9CgogICAgLmxldHRlci1wYXBlcjo6YmVmb3JlIHsKICAgICAgY29udGVudDogIiI7CiAgICAgIHBvc2l0aW9uOiBhYnNvbHV0ZTsKICAgICAgaW5zZXQ6IDEycHg7CiAgICAgIGJvcmRlcjogMXB4IHNvbGlkIHJnYmEoMTU5LCAxMTcsIDQwLCAwLjMyKTsKICAgICAgYm9yZGVyLXJhZGl1czogMTBweDsKICAgICAgcG9pbnRlci1ldmVudHM6IG5vbmU7CiAgICB9CgogICAgLmxldHRlci1kYXRlIHsKICAgICAgZm9udC1zaXplOiAxMnB4OwogICAgICB0ZXh0LXRyYW5zZm9ybTogdXBwZXJjYXNlOwogICAgICBsZXR0ZXItc3BhY2luZzogMC4xNmVtOwogICAgICBjb2xvcjogdmFyKC0tZ29sZC1kYXJrKTsKICAgICAgZm9udC13ZWlnaHQ6IDcwMDsKICAgICAgbWFyZ2luLWJvdHRvbTogMTZweDsKICAgIH0KCiAgICAubGV0dGVyLXNhbHV0YXRpb24gewogICAgICBmb250LWZhbWlseTogdmFyKC0tZm9udC1zZXJpZik7CiAgICAgIGZvbnQtc2l6ZTogY2xhbXAoMjJweCwgNXZ3LCAyOHB4KTsKICAgICAgZm9udC13ZWlnaHQ6IDcwMDsKICAgICAgY29sb3I6IHZhcigtLWluay1kYXJrKTsKICAgICAgbWFyZ2luLWJvdHRvbTogMTZweDsKICAgIH0KCiAgICAubGV0dGVyLWJvZHkgewogICAgICBmb250LWZhbWlseTogdmFyKC0tZm9udC1zZXJpZik7CiAgICAgIGZvbnQtc2l6ZTogY2xhbXAoMTZweCwgMy44dncsIDE4LjVweCk7CiAgICAgIGxpbmUtaGVpZ2h0OiAxLjc4OwogICAgICBjb2xvcjogdmFyKC0taW5rLWRhcmspOwogICAgICB3aGl0ZS1zcGFjZTogcHJlLWxpbmU7CiAgICAgIG1hcmdpbi1ib3R0b206IDI0cHg7CiAgICB9CgogICAgLmxldHRlci1zaWdub2ZmIHsKICAgICAgZm9udC1mYW1pbHk6IHZhcigtLWZvbnQtc2VyaWYpOwogICAgICBmb250LXN0eWxlOiBpdGFsaWM7CiAgICAgIGZvbnQtc2l6ZTogMTlweDsKICAgICAgY29sb3I6IHZhcigtLWFjY2VudCk7CiAgICAgIGZvbnQtd2VpZ2h0OiA3MDA7CiAgICB9CgogICAgLyogRm9vdGVyIENlbGVicmF0ZSBCdXR0b24gKi8KICAgIC5zdG9yeS1mb290ZXIgewogICAgICB0ZXh0LWFsaWduOiBjZW50ZXI7CiAgICAgIG1hcmdpbi10b3A6IDQycHg7CiAgICB9CgogICAgLmNlbGVicmF0ZS1idG4gewogICAgICBhcHBlYXJhbmNlOiBub25lOwogICAgICBib3JkZXI6IG5vbmU7CiAgICAgIGJhY2tncm91bmQ6IGxpbmVhci1ncmFkaWVudCgxMzVkZWcsIHZhcigtLWdvbGQtbGlnaHQpIDAlLCB2YXIoLS1nb2xkLW1pZCkgMTAwJSk7CiAgICAgIGNvbG9yOiAjMmMxODAzOwogICAgICBmb250LWZhbWlseTogdmFyKC0tZm9udC1zYW5zKTsKICAgICAgZm9udC13ZWlnaHQ6IDcwMDsKICAgICAgZm9udC1zaXplOiAxNXB4OwogICAgICBwYWRkaW5nOiAxNHB4IDI4cHg7CiAgICAgIGJvcmRlci1yYWRpdXM6IDk5OXB4OwogICAgICBjdXJzb3I6IHBvaW50ZXI7CiAgICAgIGJveC1zaGFkb3c6IDAgMTBweCAyNnB4IHJnYmEoMCwgMCwgMCwgMC4zOCk7CiAgICAgIHRyYW5zaXRpb246IHRyYW5zZm9ybSAwLjJzIGVhc2UsIGJveC1zaGFkb3cgMC4ycyBlYXNlOwogICAgfQoKICAgIC5jZWxlYnJhdGUtYnRuOmhvdmVyIHsKICAgICAgdHJhbnNmb3JtOiB0cmFuc2xhdGVZKC0ycHgpOwogICAgICBib3gtc2hhZG93OiAwIDE0cHggMzJweCByZ2JhKDAsIDAsIDAsIDAuNDgpOwogICAgfQoKICAgIC5tYWRlLXdpdGgtbm90ZSB7CiAgICAgIG1hcmdpbi10b3A6IDE2cHg7CiAgICAgIGZvbnQtc2l6ZTogMTJweDsKICAgICAgY29sb3I6IHJnYmEoMjUzLCAyNDgsIDIzOSwgMC41NSk7CiAgICAgIGxldHRlci1zcGFjaW5nOiAwLjA2ZW07CiAgICB9CgogICAgLmhpZGRlbiB7CiAgICAgIGRpc3BsYXk6IG5vbmUgIWltcG9ydGFudDsKICAgIH0KICA8L3N0eWxlPgo8L2hlYWQ+Cjxib2R5IGNsYXNzPSJlbnZlbG9wZS1sb2NrZWQiIGRhdGEtdGhlbWU9InZlbHZldC1nb2xkIj4KICA8Y2FudmFzIGlkPSJzbm93Q2FudmFzIj48L2NhbnZhcz4KICA8Y2FudmFzIGlkPSJjb25mZXR0aUNhbnZhcyI+PC9jYW52YXM+CgogIDwhLS0gRmxvYXRpbmcgTXVzaWMgQ29udHJvbCAtLT4KICA8ZGl2IGNsYXNzPSJ0b3AtY29udHJvbHMiPgogICAgPGJ1dHRvbiBpZD0ibXVzaWNCdG4iIGNsYXNzPSJwaWxsLWJ0biIgdHlwZT0iYnV0dG9uIiBhcmlhLWxhYmVsPSJUb2dnbGUgRmVzdGl2ZSBDaGltZXMiPgogICAgICA8c3BhbiBjbGFzcz0ibXVzaWMtYmFycyIgYXJpYS1oaWRkZW49InRydWUiPjxzcGFuPjwvc3Bhbj48c3Bhbj48L3NwYW4+PHNwYW4+PC9zcGFuPjwvc3Bhbj4KICAgICAgPHNwYW4gaWQ9Im11c2ljTGFiZWwiPk11c2ljIE9mZjwvc3Bhbj4KICAgIDwvYnV0dG9uPgogIDwvZGl2PgoKICA8IS0tIFNUQUdFIDE6IFNlYWxlZCBXYXggRW52ZWxvcGUgSW50cm8gLS0+CiAgPHNlY3Rpb24gaWQ9ImVudmVsb3BlU2NyZWVuIiBjbGFzcz0iZW52ZWxvcGUtc2NyZWVuIiBhcmlhLWxhYmVsPSJVbndyYXAgQ2hyaXN0bWFzIENhcmQiPgogICAgPHAgY2xhc3M9InByZS1raWNrZXIiIGlkPSJlbnZlbG9wZUtpY2tlciI+U3BlY2lhbCBDaHJpc3RtYXMgRGVsaXZlcnkgwrcgMjAyNjwvcD4KCiAgICA8ZGl2IGlkPSJlbnZlbG9wZVN0YWdlIiBjbGFzcz0iZW52ZWxvcGUtc3RhZ2UiIHJvbGU9ImJ1dHRvbiIgdGFiaW5kZXg9IjAiIGFyaWEtbGFiZWw9Ik9wZW4gQ2hyaXN0bWFzIEVudmVsb3BlIj4KICAgICAgPGRpdiBjbGFzcz0iZW52ZWxvcGUtYm94Ij4KICAgICAgICA8ZGl2IGNsYXNzPSJlbnZlbG9wZS1mbGFwIj48L2Rpdj4KICAgICAgICA8ZGl2IGNsYXNzPSJlbnZlbG9wZS1wb2NrZXQiPjwvZGl2PgogICAgICAgIDxkaXYgY2xhc3M9ImVudmVsb3BlLWxhYmVsIj4KICAgICAgICAgIDxkaXYgY2xhc3M9ImVudmVsb3BlLWZvciI+RXNwZWNpYWxseSBGb3I8L2Rpdj4KICAgICAgICAgIDxkaXYgY2xhc3M9ImVudmVsb3BlLXJlY2lwaWVudCIgaWQ9ImVudmVsb3BlUmVjaXBpZW50Ij5BbWEgTWVuc2FoPC9kaXY+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgoKICAgICAgPGJ1dHRvbiBjbGFzcz0id2F4LXNlYWwtYnRuIiB0eXBlPSJidXR0b24iIHRhYmluZGV4PSItMSIgYXJpYS1oaWRkZW49InRydWUiPgogICAgICAgIDxzcGFuIGNsYXNzPSJ3YXgtc2VhbC1zdGFyIj7inKY8L3NwYW4+CiAgICAgICAgPHNwYW4gY2xhc3M9IndheC1zZWFsLXllYXIiPjIwMjY8L3NwYW4+CiAgICAgIDwvYnV0dG9uPgogICAgPC9kaXY+CgogICAgPHAgY2xhc3M9InRhcC1oaW50Ij7inKggVGFwIHRoZSBnb2xkIHdheCBzZWFsIHRvIHVud3JhcCDinKg8L3A+CiAgICA8cCBjbGFzcz0iZW52ZWxvcGUtZnJvbSIgaWQ9ImVudmVsb3BlRnJvbSI+U2VudCB3aXRoIGxvdmUgZnJvbSBLd2FtZTwvcD4KICA8L3NlY3Rpb24+CgogIDwhLS0gU1RBR0UgMuKAkzU6IE1haW4gSW50ZXJhY3RpdmUgSG9saWRheSBFeHBlcmllbmNlIC0tPgogIDxtYWluIGlkPSJzdG9yeUNvbnRhaW5lciIgY2xhc3M9InN0b3J5LWNvbnRhaW5lciI+CiAgICA8IS0tIEhlcm8gU2VjdGlvbiAtLT4KICAgIDxoZWFkZXIgY2xhc3M9Imhlcm8tc2VjdGlvbiI+CiAgICAgIDxkaXYgY2xhc3M9ImNvdW50ZG93bi1iYWRnZSIgaWQ9ImNvdW50ZG93bkJhZGdlIj7wn46EIENvdW50aW5nIGRvd24gdG8gQ2hyaXN0bWFzPC9kaXY+CgogICAgICA8ZGl2IGNsYXNzPSJoZXJvLW9ybmFtZW50IiBhcmlhLWhpZGRlbj0idHJ1ZSI+CiAgICAgICAgPHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDMyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogICAgICAgICAgPHBhdGggZD0iTTEyIDE2SDc4TTEyMiAxNkgxODgiIHN0cm9rZT0iY3VycmVudENvbG9yIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjY1Ii8+CiAgICAgICAgICA8cGF0aCBkPSJNMTAwIDNMMTA0IDEyTDExMyAxNkwxMDQgMjBMMTAwIDI5TDk2IDIwTDg3IDE2TDk2IDEyTDEwMCAzWiIgZmlsbD0iY3VycmVudENvbG9yIi8+CiAgICAgICAgICA8Y2lyY2xlIGN4PSI3MiIgY3k9IjE2IiByPSIyLjUiIGZpbGw9ImN1cnJlbnRDb2xvciIvPgogICAgICAgICAgPGNpcmNsZSBjeD0iMTI4IiBjeT0iMTYiIHI9IjIuNSIgZmlsbD0iY3VycmVudENvbG9yIi8+CiAgICAgICAgPC9zdmc+CiAgICAgIDwvZGl2PgoKICAgICAgPGgxIGNsYXNzPSJoZXJvLXRpdGxlIiBpZD0iaGVyb1RpdGxlIj5NZXJyeSBDaHJpc3RtYXMsIE15IEZhdm9yaXRlIFBlcnNvbjwvaDE+CiAgICAgIDxwIGNsYXNzPSJoZXJvLXN1YnRpdGxlIiBpZD0iaGVyb1N1YnRpdGxlIj5CZWZvcmUgMjAyNiB3cmFwcyB1cCwgSSB3YW50ZWQgdG8gcHV0IG91ciBmYXZvcml0ZSBtb21lbnRz4oCUYW5kIGEgbGl0dGxlIENocmlzdG1hcyBzdXJwcmlzZeKAlGludG8gc29tZXRoaW5nIG1hZGUganVzdCBmb3IgeW91LjwvcD4KCiAgICAgIDxkaXYgaWQ9InN0YXRzU2VjdGlvbiIgY2xhc3M9InN0YXRzLWdyaWQiPjwvZGl2PgogICAgPC9oZWFkZXI+CgogICAgPCEtLSBNZW1vcnkgUG9sYXJvaWQgR2FsbGVyeSAtLT4KICAgIDxzZWN0aW9uIGlkPSJtZW1vcmllc1NlY3Rpb24iIGNsYXNzPSJzZWN0aW9uLWJsb2NrIj4KICAgICAgPGRpdiBjbGFzcz0ic2VjdGlvbi1leWVicm93IiBpZD0ibWVtb3JpZXNFeWVicm93Ij5PdXIgMjAyNiBXcmFwcGVkPC9kaXY+CiAgICAgIDxoMiBjbGFzcz0ic2VjdGlvbi1oZWFkaW5nIiBpZD0ibWVtb3JpZXNIZWFkaW5nIj5Nb21lbnRzIFRoYXQgTWFkZSBNeSBZZWFyPC9oMj4KICAgICAgPHAgY2xhc3M9InNlY3Rpb24tc3ViIiBpZD0ibWVtb3JpZXNTdWIiPlRhcCB0aGUgbGl0dGxlIGhlYXJ0cyBvbiB5b3VyIGZhdm9yaXRlIG1lbW9yaWVzPC9wPgogICAgICA8ZGl2IGlkPSJwb2xhcm9pZEdyaWQiIGNsYXNzPSJwb2xhcm9pZC1ncmlkIj48L2Rpdj4KICAgIDwvc2VjdGlvbj4KCiAgICA8IS0tIEdvbGQgRm9pbCBTY3JhdGNoLU9mZiBHaWZ0IFJldmVhbCAtLT4KICAgIDxzZWN0aW9uIGlkPSJzY3JhdGNoU2VjdGlvbiIgY2xhc3M9InNlY3Rpb24tYmxvY2siPgogICAgICA8ZGl2IGNsYXNzPSJzZWN0aW9uLWV5ZWJyb3ciPkludGVyYWN0aXZlIFN1cnByaXNlPC9kaXY+CiAgICAgIDxoMiBjbGFzcz0ic2VjdGlvbi1oZWFkaW5nIj5Zb3VyIENocmlzdG1hcyBHaWZ0IFJldmVhbDwvaDI+CiAgICAgIDxwIGNsYXNzPSJzZWN0aW9uLXN1YiI+VXNlIHlvdXIgZmluZ2VyIG9yIG1vdXNlIHRvIHNjcmF0Y2ggb2ZmIHRoZSBnb2xkIGZvaWwgYmVsb3c8L3A+CgogICAgICA8ZGl2IGNsYXNzPSJzY3JhdGNoLXdyYXBwZXIiPgogICAgICAgIDxkaXYgY2xhc3M9InNjcmF0Y2gtaGVhZGVyIj4KICAgICAgICAgIDxkaXYgY2xhc3M9InNjcmF0Y2gta2lja2VyIj5Hb2xkZW4gSG9saWRheSBQYXNzIMK3IDIwMjY8L2Rpdj4KICAgICAgICAgIDxoMyBjbGFzcz0ic2NyYXRjaC10aXRsZSIgaWQ9InNjcmF0Y2hDYXJkSGVhZGluZyI+U2NyYXRjaCB0byBVbmxvY2sgWW91ciBTdXJwcmlzZTwvaDM+CiAgICAgICAgPC9kaXY+CgogICAgICAgIDxkaXYgY2xhc3M9InNjcmF0Y2gtc3RhZ2UiIGlkPSJzY3JhdGNoU3RhZ2UiPgogICAgICAgICAgPGRpdiBjbGFzcz0icHJpemUtY29udGVudCI+CiAgICAgICAgICAgIDxkaXYgY2xhc3M9InByaXplLWVtb2ppIiBpZD0icHJpemVFbW9qaSI+8J+lguKcqPCfjoQ8L2Rpdj4KICAgICAgICAgICAgPGRpdiBjbGFzcz0icHJpemUtaGVhZGxpbmUiIGlkPSJwcml6ZUhlYWRsaW5lIj5DaHJpc3RtYXMgRGlubmVyIERhdGUgJmFtcDsgTXlzdGVyeSBHaWZ0ITwvZGl2PgogICAgICAgICAgICA8cCBjbGFzcz0icHJpemUtZGV0YWlscyIgaWQ9InByaXplRGV0YWlscyI+R2V0IGRyZXNzZWQgdXAgb24gRGVjZW1iZXIgMjYgYXQgNzowMCBQTeKAlGRpbm5lciBhdCB5b3VyIGZhdm9yaXRlIHNwb3QgaXMgb24gbWUsIHBsdXMgY2hlY2sgaW5zaWRlIHRoZSByZWQgZ2lmdCBiYWcgdW5kZXIgdGhlIHRyZWUhPC9wPgogICAgICAgICAgICA8c3BhbiBjbGFzcz0icHJpemUtY29kZSIgaWQ9InByaXplQ29kZSI+VklQIFBBU1MgwrcgREVDIDIwMjY8L3NwYW4+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDxjYW52YXMgaWQ9InNjcmF0Y2hDYW52YXMiPjwvY2FudmFzPgogICAgICAgIDwvZGl2PgoKICAgICAgICA8ZGl2IGNsYXNzPSJzY3JhdGNoLWZvb3RlciI+CiAgICAgICAgICA8c3BhbiBpZD0ic2NyYXRjaFN0YXR1c1RleHQiPlNjcmF0Y2ggfjQ1JSBvZiB0aGUgZ29sZCBmb2lsIHRvIHJldmVhbDwvc3Bhbj4KICAgICAgICAgIDxidXR0b24gaWQ9InJlc2V0U2NyYXRjaEJ0biIgY2xhc3M9ImxpbmstcmVzZXQiIHR5cGU9ImJ1dHRvbiI+UmVzZXQgR29sZCBGb2lsPC9idXR0b24+CiAgICAgICAgPC9kaXY+CiAgICAgIDwvZGl2PgogICAgPC9zZWN0aW9uPgoKICAgIDwhLS0gUGVyc29uYWwgS2VlcHNha2UgQ2hyaXN0bWFzIExldHRlciAtLT4KICAgIDxzZWN0aW9uIGlkPSJsZXR0ZXJTZWN0aW9uIiBjbGFzcz0ic2VjdGlvbi1ibG9jayI+CiAgICAgIDxkaXYgY2xhc3M9InNlY3Rpb24tZXllYnJvdyI+RnJvbSBUaGUgSGVhcnQ8L2Rpdj4KICAgICAgPGgyIGNsYXNzPSJzZWN0aW9uLWhlYWRpbmciPkEgQ2hyaXN0bWFzIE5vdGUgRm9yIFlvdTwvaDI+CiAgICAgIDxwIGNsYXNzPSJzZWN0aW9uLXN1YiI+U29tZXRoaW5nIHRvIGtlZXAgbG9uZyBhZnRlciB0aGUgZGVjb3JhdGlvbnMgY29tZSBkb3duPC9wPgoKICAgICAgPGFydGljbGUgY2xhc3M9ImxldHRlci1wYXBlciI+CiAgICAgICAgPGRpdiBjbGFzcz0ibGV0dGVyLWRhdGUiIGlkPSJsZXR0ZXJEYXRlIj5EZWNlbWJlciAyNSwgMjAyNjwvZGl2PgogICAgICAgIDxoMyBjbGFzcz0ibGV0dGVyLXNhbHV0YXRpb24iIGlkPSJsZXR0ZXJTYWx1dGF0aW9uIj5EZWFyZXN0IEFtYSw8L2gzPgogICAgICAgIDxkaXYgY2xhc3M9ImxldHRlci1ib2R5IiBpZD0ibGV0dGVyQm9keSI+PC9kaXY+CiAgICAgICAgPGRpdiBjbGFzcz0ibGV0dGVyLXNpZ25vZmYiIGlkPSJsZXR0ZXJTaWdub2ZmIj5Gb3JldmVyIHlvdXJzLCBLd2FtZSDimaU8L2Rpdj4KICAgICAgPC9hcnRpY2xlPgogICAgPC9zZWN0aW9uPgoKICAgIDxmb290ZXIgY2xhc3M9InN0b3J5LWZvb3RlciI+CiAgICAgIDxidXR0b24gaWQ9ImNlbGVicmF0ZUJ0biIgY2xhc3M9ImNlbGVicmF0ZS1idG4iIHR5cGU9ImJ1dHRvbiI+4p2E77iPIFNob3dlciBXaXRoIENocmlzdG1hcyBNYWdpYyDinKg8L2J1dHRvbj4KICAgICAgPHAgY2xhc3M9Im1hZGUtd2l0aC1ub3RlIiBpZD0iZm9vdGVyTm90ZSI+Q3JhZnRlZCBleGNsdXNpdmVseSBmb3IgQW1hIMK3IENocmlzdG1hcyAyMDI2PC9wPgogICAgPC9mb290ZXI+CiAgPC9tYWluPgoKICA8c2NyaXB0PgogICAgLyogPT09IFNUQVJUIENVU1RPTUVSIENPTkZJRyA9PT0gKi8KICAgIHdpbmRvdy5DQVJEX0NPTkZJRyA9IHsKICAgICAgdGhlbWU6ICJ2ZWx2ZXQtZ29sZCIsCiAgICAgIHJlY2lwaWVudE5hbWU6ICJBbWEgTWVuc2FoIiwKICAgICAgc2VuZGVyTmFtZTogIkt3YW1lIiwKICAgICAgZW52ZWxvcGVLaWNrZXI6ICJTcGVjaWFsIENocmlzdG1hcyBEZWxpdmVyeSDCtyAyMDI2IiwKICAgICAgaGVyb1RpdGxlOiAiTWVycnkgQ2hyaXN0bWFzLCBNeSBGYXZvcml0ZSBQZXJzb24iLAogICAgICBoZXJvU3VidGl0bGU6ICJCZWZvcmUgMjAyNiB3cmFwcyB1cCwgSSB3YW50ZWQgdG8gZ2F0aGVyIG15IGZhdm9yaXRlIG1lbW9yaWVzIHdpdGggeW914oCUYW5kIGhpZGUgYSBzcGVjaWFsIENocmlzdG1hcyBzdXJwcmlzZSByaWdodCBpbnNpZGUuIiwKICAgICAgbXVzaWNVcmw6ICIiLAogICAgICBzaG93U3RhdHM6IHRydWUsCiAgICAgIHN0YXRzOiBbCiAgICAgICAgeyBudW1iZXI6ICIzNjUiLCBsYWJlbDogIkRheXMgb2YgTGF1Z2hzIFRvZ2V0aGVyIiB9LAogICAgICAgIHsgbnVtYmVyOiAiMTAwJSIsIGxhYmVsOiAiTXkgRmF2b3JpdGUgUGFydCBvZiAyMDI2IiB9LAogICAgICAgIHsgbnVtYmVyOiAi4oieIiwgbGFiZWw6ICJXaXNoZXMgRm9yIFVzIGluIDIwMjciIH0KICAgICAgXSwKICAgICAgc2hvd01lbW9yaWVzOiB0cnVlLAogICAgICBtZW1vcmllc0V5ZWJyb3c6ICJPdXIgMjAyNiBXcmFwcGVkIiwKICAgICAgbWVtb3JpZXNIZWFkaW5nOiAiTW9tZW50cyBUaGF0IE1hZGUgTXkgWWVhciIsCiAgICAgIG1lbW9yaWVzOiBbCiAgICAgICAgewogICAgICAgICAgZGF0ZTogIlNwcmluZyAyMDI2IiwKICAgICAgICAgIHRpdGxlOiAiVW5wbGFubmVkIEFkdmVudHVyZXMiLAogICAgICAgICAgY2FwdGlvbjogIkV2ZW4gdGhlIHNpbXBsZXN0IGVycmFuZHMgdHVybmVkIGludG8gbXkgZmF2b3JpdGUgZGF5cyB3aGVuZXZlciB5b3Ugd2VyZSBuZXh0IHRvIG1lLiIsCiAgICAgICAgICBpbWFnZTogInNjZW5lOmNvY29hIgogICAgICAgIH0sCiAgICAgICAgewogICAgICAgICAgZGF0ZTogIk1pZC1ZZWFyIDIwMjYiLAogICAgICAgICAgdGl0bGU6ICJMYXRlLU5pZ2h0IFRhbGtzICYgQmlnIERyZWFtcyIsCiAgICAgICAgICBjYXB0aW9uOiAiTGF1Z2hpbmcgdW50aWwgbWlkbmlnaHQgYW5kIHBsYW5uaW5nIGV2ZXJ5dGhpbmcgd2Ugd2FudCB0byBidWlsZCB0b2dldGhlci4iLAogICAgICAgICAgaW1hZ2U6ICJzY2VuZTpzdGFybGlnaHQiCiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICBkYXRlOiAiQXV0dW1uIDIwMjYiLAogICAgICAgICAgdGl0bGU6ICJUaHJvdWdoIEJ1c3kgV2Vla3MgJiBXaW5zIiwKICAgICAgICAgIGNhcHRpb246ICJUaGFuayB5b3UgZm9yIGJlaW5nIG15IGNhbG0sIG15IGNoZWVybGVhZGVyLCBhbmQgbXkgc2FmZSBwbGFjZSBhbGwgeWVhciBsb25nLiIsCiAgICAgICAgICBpbWFnZTogInNjZW5lOmxhbnRlcm5zIgogICAgICAgIH0sCiAgICAgICAgewogICAgICAgICAgZGF0ZTogIkRlY2VtYmVyIDIwMjYiLAogICAgICAgICAgdGl0bGU6ICJXcmFwcGVkIGluIEhvbGlkYXkgTGlnaHRzIiwKICAgICAgICAgIGNhcHRpb246ICJFbmRpbmcgMjAyNiBncmF0ZWZ1bCBmb3IgZXZlcnkgc2luZ2xlIG1lbW9yeeKAlGFuZCBleGNpdGVkIGZvciBldmVyeXRoaW5nIGFoZWFkLiIsCiAgICAgICAgICBpbWFnZTogInNjZW5lOnRyZWUiCiAgICAgICAgfQogICAgICBdLAogICAgICBzaG93U2NyYXRjaENhcmQ6IHRydWUsCiAgICAgIHNjcmF0Y2hDYXJkSGVhZGluZzogIlNjcmF0Y2ggdG8gVW5sb2NrIFlvdXIgU3VycHJpc2UiLAogICAgICBwcml6ZUVtb2ppOiAi8J+lguKcqPCfjoEiLAogICAgICBwcml6ZUhlYWRsaW5lOiAiQ2hyaXN0bWFzIERpbm5lciBEYXRlICYgR2lmdCBSZXZlYWwhIiwKICAgICAgcHJpemVEZXRhaWxzOiAiRHJlc3MgdXAgb24gRGVjZW1iZXIgMjYgYXQgNzowMCBQTeKAlGRpbm5lciBhdCB5b3VyIGZhdm9yaXRlIHNwb3QgaXMgMTAwJSBvbiBtZSwgYW5kIGNoZWNrIHRoZSBlbnZlbG9wZSB0dWNrZWQgdW5kZXIgdGhlIHRyZWUhIiwKICAgICAgcHJpemVDb2RlOiAiQ0hSSVNUTUFTIFZJUCBQQVNTIMK3IDIwMjYiLAogICAgICBzaG93TGV0dGVyOiB0cnVlLAogICAgICBsZXR0ZXJEYXRlOiAiQ2hyaXN0bWFzIDIwMjYiLAogICAgICBsZXR0ZXJTYWx1dGF0aW9uOiAiRGVhcmVzdCBBbWEsIiwKICAgICAgbGV0dGVyQm9keTogIkxvb2tpbmcgYmFjayBhdCAyMDI2LCB0aGUgYnJpZ2h0ZXN0IHBhcnQgb2YgZXZlcnkgc2luZ2xlIG1vbnRoIHdhcyBzaGFyaW5nIGl0IHdpdGggeW91LiBUaGFuayB5b3UgZm9yIHlvdXIga2luZG5lc3MsIHlvdXIgcGF0aWVuY2UsIHlvdXIgaW5mZWN0aW91cyBsYXVnaCwgYW5kIHRoZSB3YXJtdGggeW91IGJyaW5nIGludG8gZXZlcnkgcm9vbS5cblxuTWF5IHRoaXMgQ2hyaXN0bWFzIHdyYXAgeW91IGluIHBlYWNlLCBqb3ksIGFuZCBhbGwgdGhlIGxvdmUgeW91IGdpdmUgc28gZWZmb3J0bGVzc2x5IHRvIGV2ZXJ5b25lIGFyb3VuZCB5b3UuIEhlcmUgaXMgdG8gbWFnaWMgdG9uaWdodCBhbmQgb3VyIGJlc3QgeWVhciB5ZXQgaW4gMjAyNy4iLAogICAgICBsZXR0ZXJTaWdub2ZmOiAiV2l0aCBhbGwgbXkgbG92ZSwgS3dhbWUg4pmlIgogICAgfTsKICAgIC8qID09PSBFTkQgQ1VTVE9NRVIgQ09ORklHID09PSAqLwoKICAgIChmdW5jdGlvbiAoKSB7CiAgICAgIGNvbnN0IGNmZyA9IHdpbmRvdy5DQVJEX0NPTkZJRyB8fCB7fTsKCiAgICAgIC8vIEJ1aWx0LWluIEZlc3RpdmUgU1ZHIFNjZW5lcyAodXNlZCB3aGVuIG5vIGN1c3RvbSBwaG90byBpcyB1cGxvYWRlZCB5ZXQpCiAgICAgIGNvbnN0IEJVSUxUSU5fU0NFTkVTID0gewogICAgICAgICJzY2VuZTpjb2NvYSI6IGA8c3ZnIHZpZXdCb3g9IjAgMCA0ODAgMzgwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogICAgICAgICAgPGRlZnM+CiAgICAgICAgICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZzEiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgICAgICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjNDcxMDFkIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMWQwNzBkIi8+CiAgICAgICAgICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICAgICAgICA8L2RlZnM+CiAgICAgICAgICA8cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjM4MCIgZmlsbD0idXJsKCNnMSkiLz4KICAgICAgICAgIDxjaXJjbGUgY3g9IjM4NSIgY3k9Ijc4IiByPSI0NiIgZmlsbD0iI2Y3ZGZhMCIgb3BhY2l0eT0iMC4xNiIvPgogICAgICAgICAgPGNpcmNsZSBjeD0iOTUiIGN5PSI5MCIgcj0iMyIgZmlsbD0iI2ZmZjhkYyIgb3BhY2l0eT0iMC44Ii8+CiAgICAgICAgICA8Y2lyY2xlIGN4PSIyOTAiIGN5PSI2MCIgcj0iMi41IiBmaWxsPSIjZmZmOGRjIiBvcGFjaXR5PSIwLjciLz4KICAgICAgICAgIDxyZWN0IHg9IjY1IiB5PSIyOTUiIHdpZHRoPSIzNTAiIGhlaWdodD0iMTYiIHJ4PSI4IiBmaWxsPSIjNmIzZDIyIi8+CiAgICAgICAgICA8IS0tIFR3byBGZXN0aXZlIE11Z3MgLS0+CiAgICAgICAgICA8cmVjdCB4PSIxMzUiIHk9IjE5NSIgd2lkdGg9Ijg4IiBoZWlnaHQ9IjEwMCIgcng9IjE2IiBmaWxsPSIjYjkyYjNhIi8+CiAgICAgICAgICA8cGF0aCBkPSJNMjIzIDIxNSBIMjQyIEExOCAxOCAwIDAgMSAyNDIgMjY4IEgyMjMiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2I5MmIzYSIgc3Ryb2tlLXdpZHRoPSIxMiIvPgogICAgICAgICAgPGVsbGlwc2UgY3g9IjE3OSIgY3k9IjE5NyIgcng9IjQwIiByeT0iMTEiIGZpbGw9IiNmZmY1ZTQiLz4KICAgICAgICAgIDxyZWN0IHg9IjI1NSIgeT0iMjA4IiB3aWR0aD0iODQiIGhlaWdodD0iODciIHJ4PSIxNiIgZmlsbD0iI2U1Yjg2NCIvPgogICAgICAgICAgPHBhdGggZD0iTTMzOSAyMjUgSDM1NiBBMTYgMTYgMCAwIDEgMzU2IDI3MiBIMzM5IiBmaWxsPSJub25lIiBzdHJva2U9IiNlNWI4NjQiIHN0cm9rZS13aWR0aD0iMTEiLz4KICAgICAgICAgIDxlbGxpcHNlIGN4PSIyOTciIGN5PSIyMTAiIHJ4PSIzOCIgcnk9IjEwIiBmaWxsPSIjZmZmNWU0Ii8+CiAgICAgICAgICA8IS0tIFN0ZWFtIEhlYXJ0cyAtLT4KICAgICAgICAgIDxwYXRoIGQ9Ik0xNzUgMTY4IEMxNjUgMTUwLCAxOTIgMTQwLCAxNzkgMTIyIiBmaWxsPSJub25lIiBzdHJva2U9IiNmN2RmYTAiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBvcGFjaXR5PSIwLjc1Ii8+CiAgICAgICAgICA8cGF0aCBkPSJNMjk3IDE4MCBDMjg3IDE2MiwgMzE0IDE1MiwgMzAwIDEzNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZjdkZmEwIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iMC43NSIvPgogICAgICAgICAgPHBhdGggZD0iTTIzOCAxNDAgQzIzOCAxMzEsIDIyNCAxMjYsIDIyNCAxMzcgQzIyNCAxNDYsIDIzOCAxNTQsIDIzOCAxNTggQzIzOCAxNTQsIDI1MiAxNDYsIDI1MiAxMzcgQzI1MiAxMjYsIDIzOCAxMzEsIDIzOCAxNDAgWiIgZmlsbD0iI2Y2ZGY5ZSIvPgogICAgICAgIDwvc3ZnPmAsCiAgICAgICAgInNjZW5lOnN0YXJsaWdodCI6IGA8c3ZnIHZpZXdCb3g9IjAgMCA0ODAgMzgwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogICAgICAgICAgPGRlZnM+CiAgICAgICAgICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZzIiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgICAgICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMDkxNTJmIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMWQzNTY0Ii8+CiAgICAgICAgICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICAgICAgICA8L2RlZnM+CiAgICAgICAgICA8cmVjdCB3aWR0aD0iNDgwIiBoZWlnaHQ9IjM4MCIgZmlsbD0idXJsKCNnMikiLz4KICAgICAgICAgIDxjaXJjbGUgY3g9IjM2NSIgY3k9Ijg2IiByPSIzNiIgZmlsbD0iI2ZkZjNjZiIvPgogICAgICAgICAgPGNpcmNsZSBjeD0iMzgwIiBjeT0iNzgiIHI9IjMyIiBmaWxsPSIjMGQxZDNkIi8+CiAgICAgICAgICA8ZyBmaWxsPSIjZjdlM2EzIj4KICAgICAgICAgICAgPGNpcmNsZSBjeD0iODgiIGN5PSI3MCIgcj0iMi41Ii8+PGNpcmNsZSBjeD0iMTUyIiBjeT0iMTEyIiByPSIyIi8+PGNpcmNsZSBjeD0iMjM4IiBjeT0iNTgiIHI9IjMiLz4KICAgICAgICAgICAgPGNpcmNsZSBjeD0iMjk1IiBjeT0iMTE4IiByPSIyIi8+PGNpcmNsZSBjeD0iMTIwIiBjeT0iMTY4IiByPSIxLjgiLz48Y2lyY2xlIGN4PSI0MTgiIGN5PSIxNTUiIHI9IjIuMyIvPgogICAgICAgICAgPC9nPgogICAgICAgICAgPHBhdGggZD0iTTI0MCA4NCBMMjQ0IDk2IEwyNTYgMTAwIEwyNDQgMTA0IEwyNDAgMTE2IEwyMzYgMTA0IEwyMjQgMTAwIEwyMzYgOTYgWiIgZmlsbD0iI2Y3ZTNhMyIvPgogICAgICAgICAgPHBhdGggZD0iTTAgMzA1IFExMzAgMjY1IDI1NSAzMDAgVDQ4MCAyODggTDQ4MCAzODAgTDAgMzgwIFoiIGZpbGw9IiNkY2U3ZjciLz4KICAgICAgICAgIDxwYXRoIGQ9Ik0wIDMzMCBRMTgwIDI5OCAzNDAgMzI4IFQ0ODAgMzIwIEw0ODAgMzgwIEwwIDM4MCBaIiBmaWxsPSIjZjVmOGZkIi8+CiAgICAgICAgICA8IS0tIFBpbmUgc2lsaG91ZXR0ZXMgLS0+CiAgICAgICAgICA8cG9seWdvbiBwb2ludHM9Ijg1LDIyMCA1NSwzMDUgMTE1LDMwNSIgZmlsbD0iIzBmMjkyNiIvPgogICAgICAgICAgPHBvbHlnb24gcG9pbnRzPSI4NSwxOTAgNjIsMjU4IDEwOCwyNTgiIGZpbGw9IiMxNTM4MzMiLz4KICAgICAgICAgIDxwb2x5Z29uIHBvaW50cz0iNDA1LDIxMCAzNzIsMzAyIDQzOCwzMDIiIGZpbGw9IiMwZjI5MjYiLz4KICAgICAgICAgIDxwb2x5Z29uIHBvaW50cz0iNDA1LDE3OCAzODAsMjUyIDQzMCwyNTIiIGZpbGw9IiMxNTM4MzMiLz4KICAgICAgICAgIDwhLS0gV2FybSBnbG93aW5nIGxhbnRlcm4gcG9zdCAtLT4KICAgICAgICAgIDxyZWN0IHg9IjIzNiIgeT0iMjE4IiB3aWR0aD0iNyIgaGVpZ2h0PSI5MiIgZmlsbD0iIzIzMzE0OSIvPgogICAgICAgICAgPGNpcmNsZSBjeD0iMjM5LjUiIGN5PSIyMTIiIHI9IjIyIiBmaWxsPSIjZjhkODdjIiBvcGFjaXR5PSIwLjMyIi8+CiAgICAgICAgICA8Y2lyY2xlIGN4PSIyMzkuNSIgY3k9IjIxMiIgcj0iOSIgZmlsbD0iI2ZmZTlhNiIvPgogICAgICAgIDwvc3ZnPmAsCiAgICAgICAgInNjZW5lOmxhbnRlcm5zIjogYDxzdmcgdmlld0JveD0iMCAwIDQ4MCAzODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgICAgICAgICA8ZGVmcz4KICAgICAgICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJnMyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgogICAgICAgICAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMyYzBmMjMiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1YzFmMzgiLz4KICAgICAgICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgICAgICAgIDwvZGVmcz4KICAgICAgICAgIDxyZWN0IHdpZHRoPSI0ODAiIGhlaWdodD0iMzgwIiBmaWxsPSJ1cmwoI2czKSIvPgogICAgICAgICAgPHBhdGggZD0iTTAgNjUgUTI0MCAxMzUgNDgwIDU1IiBmaWxsPSJub25lIiBzdHJva2U9IiNmNmRmOWUiIHN0cm9rZS13aWR0aD0iMiIgb3BhY2l0eT0iMC42Ii8+CiAgICAgICAgICA8IS0tIEhhbmdpbmcgd2FybSBzdHJpbmcgbGlnaHRzIC0tPgogICAgICAgICAgPGc+CiAgICAgICAgICAgIDxjaXJjbGUgY3g9Ijk1IiBjeT0iOTYiIHI9IjIyIiBmaWxsPSIjZjhkODdjIiBvcGFjaXR5PSIwLjI0Ii8+PGNpcmNsZSBjeD0iOTUiIGN5PSI5NiIgcj0iOCIgZmlsbD0iI2ZmZjBiYSIvPgogICAgICAgICAgICA8Y2lyY2xlIGN4PSIxOTIiIGN5PSIxMTIiIHI9IjI2IiBmaWxsPSIjZjhkODdjIiBvcGFjaXR5PSIwLjI4Ii8+PGNpcmNsZSBjeD0iMTkyIiBjeT0iMTEyIiByPSI5IiBmaWxsPSIjZmZmMGJhIi8+CiAgICAgICAgICAgIDxjaXJjbGUgY3g9IjI5MiIgY3k9IjExMCIgcj0iMjYiIGZpbGw9IiNmOGQ4N2MiIG9wYWNpdHk9IjAuMjgiLz48Y2lyY2xlIGN4PSIyOTIiIGN5PSIxMTAiIHI9IjkiIGZpbGw9IiNmZmYwYmEiLz4KICAgICAgICAgICAgPGNpcmNsZSBjeD0iMzg4IiBjeT0iODgiIHI9IjIyIiBmaWxsPSIjZjhkODdjIiBvcGFjaXR5PSIwLjI0Ii8+PGNpcmNsZSBjeD0iMzg4IiBjeT0iODgiIHI9IjgiIGZpbGw9IiNmZmYwYmEiLz4KICAgICAgICAgIDwvZz4KICAgICAgICAgIDwhLS0gR2lmdCBCb3hlcyAtLT4KICAgICAgICAgIDxyZWN0IHg9IjEyOCIgeT0iMjI4IiB3aWR0aD0iMTAyIiBoZWlnaHQ9IjkyIiByeD0iOCIgZmlsbD0iI2Q5YTg0ZSIvPgogICAgICAgICAgPHJlY3QgeD0iMTczIiB5PSIyMjgiIHdpZHRoPSIxMiIgaGVpZ2h0PSI5MiIgZmlsbD0iIzhmMWQyYyIvPgogICAgICAgICAgPHJlY3QgeD0iMTI4IiB5PSIyNjgiIHdpZHRoPSIxMDIiIGhlaWdodD0iMTIiIGZpbGw9IiM4ZjFkMmMiLz4KICAgICAgICAgIDxyZWN0IHg9IjI1MiIgeT0iMjAyIiB3aWR0aD0iMTEyIiBoZWlnaHQ9IjExOCIgcng9IjgiIGZpbGw9IiM5YzIyMzUiLz4KICAgICAgICAgIDxyZWN0IHg9IjMwMiIgeT0iMjAyIiB3aWR0aD0iMTMiIGhlaWdodD0iMTE4IiBmaWxsPSIjZjZkZjllIi8+CiAgICAgICAgICA8cmVjdCB4PSIyNTIiIHk9IjI1NCIgd2lkdGg9IjExMiIgaGVpZ2h0PSIxMyIgZmlsbD0iI2Y2ZGY5ZSIvPgogICAgICAgIDwvc3ZnPmAsCiAgICAgICAgInNjZW5lOnRyZWUiOiBgPHN2ZyB2aWV3Qm94PSIwIDAgNDgwIDM4MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgICAgIDxkZWZzPgogICAgICAgICAgICA8bGluZWFyR3JhZGllbnQgaWQ9Imc0IiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgICAgICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzA5MjMxOSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA1MTMwZCIvPgogICAgICAgICAgICA8L2xpbmVhckdyYWRpZW50PgogICAgICAgICAgPC9kZWZzPgogICAgICAgICAgPHJlY3Qgd2lkdGg9IjQ4MCIgaGVpZ2h0PSIzODAiIGZpbGw9InVybCgjZzQpIi8+CiAgICAgICAgICA8Y2lyY2xlIGN4PSIyNDAiIGN5PSIxOTUiIHI9IjEzOCIgZmlsbD0iI2Y2ZGY5ZSIgb3BhY2l0eT0iMC4wNyIvPgogICAgICAgICAgPCEtLSBDaHJpc3RtYXMgVHJlZSAtLT4KICAgICAgICAgIDxyZWN0IHg9IjIyNCIgeT0iMjk4IiB3aWR0aD0iMzIiIGhlaWdodD0iMzgiIHJ4PSI0IiBmaWxsPSIjNmI0MjI2Ii8+CiAgICAgICAgICA8cG9seWdvbiBwb2ludHM9IjI0MCwxNTUgMTUwLDMwMiAzMzAsMzAyIiBmaWxsPSIjMTQ1MzM3Ii8+CiAgICAgICAgICA8cG9seWdvbiBwb2ludHM9IjI0MCwxMTUgMTY4LDI0MiAzMTIsMjQyIiBmaWxsPSIjMWE2ODQ1Ii8+CiAgICAgICAgICA8cG9seWdvbiBwb2ludHM9IjI0MCw3OCAxODYsMTg0IDI5NCwxODQiIGZpbGw9IiMyMTdjNTMiLz4KICAgICAgICAgIDwhLS0gVG9wIFN0YXIgLS0+CiAgICAgICAgICA8cGF0aCBkPSJNMjQwIDQ0IEwyNDYgNjIgTDI2NSA2MiBMMjUwIDczIEwyNTUgOTAgTDI0MCA4MCBMMjI1IDkwIEwyMzAgNzMgTDIxNSA2MiBMMjM0IDYyIFoiIGZpbGw9IiNmYmUyOWEiLz4KICAgICAgICAgIDwhLS0gT3JuYW1lbnRzIC0tPgogICAgICAgICAgPGNpcmNsZSBjeD0iMjE4IiBjeT0iMTU4IiByPSI3IiBmaWxsPSIjZDkzODQ4Ii8+PGNpcmNsZSBjeD0iMjYyIiBjeT0iMTcyIiByPSI2LjUiIGZpbGw9IiNmNmRmOWUiLz4KICAgICAgICAgIDxjaXJjbGUgY3g9IjE5OCIgY3k9IjIyMiIgcj0iOCIgZmlsbD0iI2Y2ZGY5ZSIvPjxjaXJjbGUgY3g9IjI1MiIgY3k9IjIxNiIgcj0iNy41IiBmaWxsPSIjZDkzODQ4Ii8+CiAgICAgICAgICA8Y2lyY2xlIGN4PSIyODIiIGN5PSIyNjIiIHI9IjgiIGZpbGw9IiNmNmRmOWUiLz48Y2lyY2xlIGN4PSIyMDQiIGN5PSIyNzYiIHI9IjcuNSIgZmlsbD0iI2Q5Mzg0OCIvPgogICAgICAgICAgPGNpcmNsZSBjeD0iMjQyIiBjeT0iMjcyIiByPSI2LjUiIGZpbGw9IiNmZmY1ZDYiLz4KICAgICAgICA8L3N2Zz5gCiAgICAgIH07CgogICAgICAvLyBBcHBseSBUaGVtZSAmIE1ldGFkYXRhCiAgICAgIGRvY3VtZW50LmJvZHkuc2V0QXR0cmlidXRlKCJkYXRhLXRoZW1lIiwgY2ZnLnRoZW1lIHx8ICJ2ZWx2ZXQtZ29sZCIpOwogICAgICBpZiAoY2ZnLnJlY2lwaWVudE5hbWUpIHsKICAgICAgICBkb2N1bWVudC50aXRsZSA9IGBGb3IgJHtjZmcucmVjaXBpZW50TmFtZX0gwrcgQ2hyaXN0bWFzIDIwMjZgOwogICAgICB9CgogICAgICBjb25zdCBzZXRUZXh0ID0gKGlkLCB2YWwpID0+IHsKICAgICAgICBjb25zdCBlbCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKGlkKTsKICAgICAgICBpZiAoZWwgJiYgdmFsICE9PSB1bmRlZmluZWQgJiYgdmFsICE9PSBudWxsKSBlbC50ZXh0Q29udGVudCA9IHZhbDsKICAgICAgfTsKCiAgICAgIHNldFRleHQoImVudmVsb3BlS2lja2VyIiwgY2ZnLmVudmVsb3BlS2lja2VyIHx8ICJTcGVjaWFsIENocmlzdG1hcyBEZWxpdmVyeSDCtyAyMDI2Iik7CiAgICAgIHNldFRleHQoImVudmVsb3BlUmVjaXBpZW50IiwgY2ZnLnJlY2lwaWVudE5hbWUgfHwgIlNvbWVvbmUgU3BlY2lhbCIpOwogICAgICBzZXRUZXh0KCJlbnZlbG9wZUZyb20iLCBjZmcuc2VuZGVyTmFtZSA/IGBTZW50IHdpdGggbG92ZSBmcm9tICR7Y2ZnLnNlbmRlck5hbWV9YCA6ICIiKTsKICAgICAgc2V0VGV4dCgiaGVyb1RpdGxlIiwgY2ZnLmhlcm9UaXRsZSB8fCAiTWVycnkgQ2hyaXN0bWFzISIpOwogICAgICBzZXRUZXh0KCJoZXJvU3VidGl0bGUiLCBjZmcuaGVyb1N1YnRpdGxlIHx8ICIiKTsKICAgICAgc2V0VGV4dCgibWVtb3JpZXNFeWVicm93IiwgY2ZnLm1lbW9yaWVzRXllYnJvdyB8fCAiT3VyIDIwMjYgV3JhcHBlZCIpOwogICAgICBzZXRUZXh0KCJtZW1vcmllc0hlYWRpbmciLCBjZmcubWVtb3JpZXNIZWFkaW5nIHx8ICJNb21lbnRzIFRoYXQgTWFkZSBNeSBZZWFyIik7CiAgICAgIHNldFRleHQoInNjcmF0Y2hDYXJkSGVhZGluZyIsIGNmZy5zY3JhdGNoQ2FyZEhlYWRpbmcgfHwgIlNjcmF0Y2ggdG8gVW5sb2NrIFlvdXIgU3VycHJpc2UiKTsKICAgICAgc2V0VGV4dCgicHJpemVFbW9qaSIsIGNmZy5wcml6ZUVtb2ppIHx8ICLwn46B4pyo8J+OhCIpOwogICAgICBzZXRUZXh0KCJwcml6ZUhlYWRsaW5lIiwgY2ZnLnByaXplSGVhZGxpbmUgfHwgIkEgU3BlY2lhbCBDaHJpc3RtYXMgU3VycHJpc2UhIik7CiAgICAgIHNldFRleHQoInByaXplRGV0YWlscyIsIGNmZy5wcml6ZURldGFpbHMgfHwgIiIpOwogICAgICBzZXRUZXh0KCJwcml6ZUNvZGUiLCBjZmcucHJpemVDb2RlIHx8ICJDSFJJU1RNQVMgMjAyNiIpOwogICAgICBzZXRUZXh0KCJsZXR0ZXJEYXRlIiwgY2ZnLmxldHRlckRhdGUgfHwgIkNocmlzdG1hcyAyMDI2Iik7CiAgICAgIHNldFRleHQoImxldHRlclNhbHV0YXRpb24iLCBjZmcubGV0dGVyU2FsdXRhdGlvbiB8fCBgRGVhciAke2NmZy5yZWNpcGllbnROYW1lIHx8ICJGcmllbmQifSxgKTsKICAgICAgc2V0VGV4dCgibGV0dGVyQm9keSIsIGNmZy5sZXR0ZXJCb2R5IHx8ICIiKTsKICAgICAgc2V0VGV4dCgibGV0dGVyU2lnbm9mZiIsIGNmZy5sZXR0ZXJTaWdub2ZmIHx8IChjZmcuc2VuZGVyTmFtZSA/IGBXaXRoIGxvdmUsICR7Y2ZnLnNlbmRlck5hbWV9YCA6ICIiKSk7CiAgICAgIHNldFRleHQoImZvb3Rlck5vdGUiLCBgQ3JhZnRlZCBleGNsdXNpdmVseSBmb3IgJHtjZmcucmVjaXBpZW50TmFtZSB8fCAieW91In0gwrcgQ2hyaXN0bWFzIDIwMjZgKTsKCiAgICAgIGlmICghY2ZnLnByaXplQ29kZSkgewogICAgICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJwcml6ZUNvZGUiKS5jbGFzc0xpc3QuYWRkKCJoaWRkZW4iKTsKICAgICAgfQoKICAgICAgLy8gTGl2ZSBDaHJpc3RtYXMgQ291bnRkb3duIEJhZGdlCiAgICAgIGZ1bmN0aW9uIHVwZGF0ZUNvdW50ZG93bigpIHsKICAgICAgICBjb25zdCBub3cgPSBuZXcgRGF0ZSgpOwogICAgICAgIGNvbnN0IHllYXIgPSBub3cuZ2V0TW9udGgoKSA9PT0gMTEgJiYgbm93LmdldERhdGUoKSA+IDI2ID8gbm93LmdldEZ1bGxZZWFyKCkgKyAxIDogbm93LmdldEZ1bGxZZWFyKCk7CiAgICAgICAgY29uc3QgeG1hcyA9IG5ldyBEYXRlKHllYXIsIDExLCAyNSwgMCwgMCwgMCk7CiAgICAgICAgY29uc3QgZGlmZiA9IHhtYXMgLSBub3c7CiAgICAgICAgY29uc3QgYmFkZ2UgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiY291bnRkb3duQmFkZ2UiKTsKICAgICAgICBpZiAoIWJhZGdlKSByZXR1cm47CiAgICAgICAgaWYgKGRpZmYgPD0gMCAmJiBub3cuZ2V0TW9udGgoKSA9PT0gMTEgJiYgKG5vdy5nZXREYXRlKCkgPT09IDI1IHx8IG5vdy5nZXREYXRlKCkgPT09IDI2KSkgewogICAgICAgICAgYmFkZ2UudGV4dENvbnRlbnQgPSAi8J+OhCBNZXJyeSBDaHJpc3RtYXMgMjAyNiEg4pyoIjsKICAgICAgICB9IGVsc2UgewogICAgICAgICAgY29uc3QgZGF5cyA9IE1hdGgubWF4KDAsIE1hdGguZmxvb3IoZGlmZiAvICgxMDAwICogNjAgKiA2MCAqIDI0KSkpOwogICAgICAgICAgY29uc3QgaG91cnMgPSBNYXRoLm1heCgwLCBNYXRoLmZsb29yKChkaWZmIC8gKDEwMDAgKiA2MCAqIDYwKSkgJSAyNCkpOwogICAgICAgICAgYmFkZ2UudGV4dENvbnRlbnQgPSBkYXlzID09PSAwCiAgICAgICAgICAgID8gYPCfjoQgQ2hyaXN0bWFzIEV2ZSDCtyAke2hvdXJzfWggdG8gQ2hyaXN0bWFzIWAKICAgICAgICAgICAgOiBg8J+OhCAke2RheXN9IERheXMgwrcgJHtob3Vyc30gSHJzIFVudGlsIENocmlzdG1hc2A7CiAgICAgICAgfQogICAgICB9CiAgICAgIHVwZGF0ZUNvdW50ZG93bigpOwogICAgICBzZXRJbnRlcnZhbCh1cGRhdGVDb3VudGRvd24sIDYwMDAwKTsKCiAgICAgIC8vIFJlbmRlciBTdGF0cwogICAgICBjb25zdCBzdGF0c0VsID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInN0YXRzU2VjdGlvbiIpOwogICAgICBpZiAoY2ZnLnNob3dTdGF0cyA9PT0gZmFsc2UgfHwgIUFycmF5LmlzQXJyYXkoY2ZnLnN0YXRzKSB8fCBjZmcuc3RhdHMubGVuZ3RoID09PSAwKSB7CiAgICAgICAgc3RhdHNFbC5jbGFzc0xpc3QuYWRkKCJoaWRkZW4iKTsKICAgICAgfSBlbHNlIHsKICAgICAgICBzdGF0c0VsLmlubmVySFRNTCA9ICIiOwogICAgICAgIGNmZy5zdGF0cy5zbGljZSgwLCAzKS5mb3JFYWNoKChzdCkgPT4gewogICAgICAgICAgY29uc3QgZGl2ID0gZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgiZGl2Iik7CiAgICAgICAgICBkaXYuY2xhc3NOYW1lID0gInN0YXQtY2FyZCI7CiAgICAgICAgICBjb25zdCBudW0gPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCJkaXYiKTsKICAgICAgICAgIG51bS5jbGFzc05hbWUgPSAic3RhdC1udW1iZXIiOwogICAgICAgICAgbnVtLnRleHRDb250ZW50ID0gc3QubnVtYmVyIHx8ICLimIUiOwogICAgICAgICAgY29uc3QgbGJsID0gZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgiZGl2Iik7CiAgICAgICAgICBsYmwuY2xhc3NOYW1lID0gInN0YXQtbGFiZWwiOwogICAgICAgICAgbGJsLnRleHRDb250ZW50ID0gc3QubGFiZWwgfHwgIiI7CiAgICAgICAgICBkaXYuYXBwZW5kQ2hpbGQobnVtKTsKICAgICAgICAgIGRpdi5hcHBlbmRDaGlsZChsYmwpOwogICAgICAgICAgc3RhdHNFbC5hcHBlbmRDaGlsZChkaXYpOwogICAgICAgIH0pOwogICAgICB9CgogICAgICAvLyBSZW5kZXIgUG9sYXJvaWQgTWVtb3JpZXMKICAgICAgY29uc3QgbWVtb3JpZXNTZWMgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgibWVtb3JpZXNTZWN0aW9uIik7CiAgICAgIGNvbnN0IGdyaWRFbCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJwb2xhcm9pZEdyaWQiKTsKICAgICAgaWYgKGNmZy5zaG93TWVtb3JpZXMgPT09IGZhbHNlIHx8ICFBcnJheS5pc0FycmF5KGNmZy5tZW1vcmllcykgfHwgY2ZnLm1lbW9yaWVzLmxlbmd0aCA9PT0gMCkgewogICAgICAgIG1lbW9yaWVzU2VjLmNsYXNzTGlzdC5hZGQoImhpZGRlbiIpOwogICAgICB9IGVsc2UgewogICAgICAgIGdyaWRFbC5pbm5lckhUTUwgPSAiIjsKICAgICAgICBjb25zdCBzY2VuZUtleXMgPSBPYmplY3Qua2V5cyhCVUlMVElOX1NDRU5FUyk7CiAgICAgICAgY2ZnLm1lbW9yaWVzLmZvckVhY2goKG1lbSwgaWR4KSA9PiB7CiAgICAgICAgICBjb25zdCBjYXJkID0gZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgiYXJ0aWNsZSIpOwogICAgICAgICAgY2FyZC5jbGFzc05hbWUgPSAicG9sYXJvaWQtY2FyZCI7CgogICAgICAgICAgY29uc3QgZnJhbWUgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCJkaXYiKTsKICAgICAgICAgIGZyYW1lLmNsYXNzTmFtZSA9ICJwb2xhcm9pZC1mcmFtZSI7CgogICAgICAgICAgY29uc3QgaW1nU3JjID0gKG1lbS5pbWFnZSB8fCAiIikudHJpbSgpOwogICAgICAgICAgaWYgKEJVSUxUSU5fU0NFTkVTW2ltZ1NyY10gfHwgIWltZ1NyYykgewogICAgICAgICAgICBjb25zdCBmYWxsYmFja0tleSA9IEJVSUxUSU5fU0NFTkVTW2ltZ1NyY10gPyBpbWdTcmMgOiBzY2VuZUtleXNbaWR4ICUgc2NlbmVLZXlzLmxlbmd0aF07CiAgICAgICAgICAgIGZyYW1lLmlubmVySFRNTCA9IEJVSUxUSU5fU0NFTkVTW2ZhbGxiYWNrS2V5XTsKICAgICAgICAgIH0gZWxzZSB7CiAgICAgICAgICAgIGNvbnN0IGltZyA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoImltZyIpOwogICAgICAgICAgICBpbWcuc3JjID0gaW1nU3JjOwogICAgICAgICAgICBpbWcuYWx0ID0gbWVtLnRpdGxlIHx8IGBNZW1vcnkgJHtpZHggKyAxfWA7CiAgICAgICAgICAgIGltZy5sb2FkaW5nID0gImxhenkiOwogICAgICAgICAgICBmcmFtZS5hcHBlbmRDaGlsZChpbWcpOwogICAgICAgICAgfQoKICAgICAgICAgIGlmIChtZW0uZGF0ZSkgewogICAgICAgICAgICBjb25zdCBkdCA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoInNwYW4iKTsKICAgICAgICAgICAgZHQuY2xhc3NOYW1lID0gInBvbGFyb2lkLWRhdGUiOwogICAgICAgICAgICBkdC50ZXh0Q29udGVudCA9IG1lbS5kYXRlOwogICAgICAgICAgICBmcmFtZS5hcHBlbmRDaGlsZChkdCk7CiAgICAgICAgICB9CgogICAgICAgICAgY29uc3QgaGVhcnRCdG4gPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCJidXR0b24iKTsKICAgICAgICAgIGhlYXJ0QnRuLnR5cGUgPSAiYnV0dG9uIjsKICAgICAgICAgIGhlYXJ0QnRuLmNsYXNzTmFtZSA9ICJsaWtlLWhlYXJ0LWJ0biI7CiAgICAgICAgICBoZWFydEJ0bi5zZXRBdHRyaWJ1dGUoImFyaWEtbGFiZWwiLCAiTG92ZSB0aGlzIG1lbW9yeSIpOwogICAgICAgICAgaGVhcnRCdG4udGV4dENvbnRlbnQgPSAi4pmhIjsKICAgICAgICAgIGhlYXJ0QnRuLmFkZEV2ZW50TGlzdGVuZXIoImNsaWNrIiwgKCkgPT4gewogICAgICAgICAgICBjb25zdCBsaWtlZCA9IGhlYXJ0QnRuLmNsYXNzTGlzdC50b2dnbGUoImxpa2VkIik7CiAgICAgICAgICAgIGhlYXJ0QnRuLnRleHRDb250ZW50ID0gbGlrZWQgPyAi4pmlIiA6ICLimaEiOwogICAgICAgICAgICBpZiAobGlrZWQpIGJ1cnN0Q29uZmV0dGkoMjgpOwogICAgICAgICAgfSk7CiAgICAgICAgICBmcmFtZS5hcHBlbmRDaGlsZChoZWFydEJ0bik7CgogICAgICAgICAgY29uc3QgdGl0bGUgPSBkb2N1bWVudC5jcmVhdGVFbGVtZW50KCJoMyIpOwogICAgICAgICAgdGl0bGUuY2xhc3NOYW1lID0gInBvbGFyb2lkLXRpdGxlIjsKICAgICAgICAgIHRpdGxlLnRleHRDb250ZW50ID0gbWVtLnRpdGxlIHx8ICIiOwoKICAgICAgICAgIGNvbnN0IGNhcCA9IGRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoInAiKTsKICAgICAgICAgIGNhcC5jbGFzc05hbWUgPSAicG9sYXJvaWQtY2FwdGlvbiI7CiAgICAgICAgICBjYXAudGV4dENvbnRlbnQgPSBtZW0uY2FwdGlvbiB8fCAiIjsKCiAgICAgICAgICBjYXJkLmFwcGVuZENoaWxkKGZyYW1lKTsKICAgICAgICAgIGNhcmQuYXBwZW5kQ2hpbGQodGl0bGUpOwogICAgICAgICAgY2FyZC5hcHBlbmRDaGlsZChjYXApOwogICAgICAgICAgZ3JpZEVsLmFwcGVuZENoaWxkKGNhcmQpOwogICAgICAgIH0pOwogICAgICB9CgogICAgICBpZiAoY2ZnLnNob3dTY3JhdGNoQ2FyZCA9PT0gZmFsc2UpIHsKICAgICAgICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgic2NyYXRjaFNlY3Rpb24iKS5jbGFzc0xpc3QuYWRkKCJoaWRkZW4iKTsKICAgICAgfQoKICAgICAgaWYgKGNmZy5zaG93TGV0dGVyID09PSBmYWxzZSkgewogICAgICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJsZXR0ZXJTZWN0aW9uIikuY2xhc3NMaXN0LmFkZCgiaGlkZGVuIik7CiAgICAgIH0KCiAgICAgIC8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQogICAgICAvLyBXRUIgQVVESU8gTVVTSUMgQk9YIENISU1FUyAoMTAwJSBSb3lhbHR5LUZyZWUpCiAgICAgIC8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQogICAgICBsZXQgYXVkaW9DdHggPSBudWxsOwogICAgICBsZXQgbXVzaWNQbGF5aW5nID0gZmFsc2U7CiAgICAgIGxldCBtZWxvZHlUaW1lciA9IG51bGw7CiAgICAgIGxldCBleHRlcm5hbEF1ZGlvID0gbnVsbDsKCiAgICAgIGlmIChjZmcubXVzaWNVcmwgJiYgY2ZnLm11c2ljVXJsLnRyaW0oKSAhPT0gIiIpIHsKICAgICAgICBleHRlcm5hbEF1ZGlvID0gbmV3IEF1ZGlvKGNmZy5tdXNpY1VybC50cmltKCkpOwogICAgICAgIGV4dGVybmFsQXVkaW8ubG9vcCA9IHRydWU7CiAgICAgIH0KCiAgICAgIC8vIEdlbnRsZSBNdXNpYy1Cb3ggbm90ZXMgZm9yICJXZSBXaXNoIFlvdSBhIE1lcnJ5IENocmlzdG1hcyIKICAgICAgY29uc3QgTUVMT0RZID0gWwogICAgICAgIFszOTIuMDAsIDAuNDJdLCBbNTIzLjI1LCAwLjQyXSwgWzUyMy4yNSwgMC4yMl0sIFs1ODcuMzMsIDAuMjJdLCBbNTIzLjI1LCAwLjIyXSwgWzQ5My44OCwgMC4yMl0sCiAgICAgICAgWzQ0MC4wMCwgMC40Ml0sIFs0NDAuMDAsIDAuNDJdLCBbNDQwLjAwLCAwLjQyXSwgWzU4Ny4zMywgMC40Ml0sIFs1ODcuMzMsIDAuMjJdLCBbNjU5LjI1LCAwLjIyXSwKICAgICAgICBbNTg3LjMzLCAwLjIyXSwgWzUyMy4yNSwgMC4yMl0sIFs0OTMuODgsIDAuNDJdLCBbMzkyLjAwLCAwLjQyXSwgWzM5Mi4wMCwgMC40Ml0sIFs2NTkuMjUsIDAuNDJdLAogICAgICAgIFs2NTkuMjUsIDAuMjJdLCBbNjk4LjQ2LCAwLjIyXSwgWzY1OS4yNSwgMC4yMl0sIFs1ODcuMzMsIDAuMjJdLCBbNTIzLjI1LCAwLjQyXSwgWzQ0MC4wMCwgMC40Ml0sCiAgICAgICAgWzM5Mi4wMCwgMC4yMl0sIFszOTIuMDAsIDAuMjJdLCBbNDQwLjAwLCAwLjQyXSwgWzU4Ny4zMywgMC40Ml0sIFs0OTMuODgsIDAuNDJdLCBbNTIzLjI1LCAwLjg1XQogICAgICBdOwogICAgICBsZXQgbm90ZUluZGV4ID0gMDsKCiAgICAgIGZ1bmN0aW9uIHBsYXlCZWxsTm90ZShmcmVxLCBkdXJhdGlvbikgewogICAgICAgIGlmICghYXVkaW9DdHggfHwgIW11c2ljUGxheWluZykgcmV0dXJuOwogICAgICAgIGNvbnN0IG5vdyA9IGF1ZGlvQ3R4LmN1cnJlbnRUaW1lOwogICAgICAgIGNvbnN0IG9zYyA9IGF1ZGlvQ3R4LmNyZWF0ZU9zY2lsbGF0b3IoKTsKICAgICAgICBjb25zdCBvdmVydG9uZSA9IGF1ZGlvQ3R4LmNyZWF0ZU9zY2lsbGF0b3IoKTsKICAgICAgICBjb25zdCBnYWluID0gYXVkaW9DdHguY3JlYXRlR2FpbigpOwogICAgICAgIGNvbnN0IG92ZXJHYWluID0gYXVkaW9DdHguY3JlYXRlR2FpbigpOwoKICAgICAgICBvc2MudHlwZSA9ICJzaW5lIjsKICAgICAgICBvc2MuZnJlcXVlbmN5LnNldFZhbHVlQXRUaW1lKGZyZXEsIG5vdyk7CgogICAgICAgIG92ZXJ0b25lLnR5cGUgPSAidHJpYW5nbGUiOwogICAgICAgIG92ZXJ0b25lLmZyZXF1ZW5jeS5zZXRWYWx1ZUF0VGltZShmcmVxICogMiwgbm93KTsKCiAgICAgICAgZ2Fpbi5nYWluLnNldFZhbHVlQXRUaW1lKDAuMDAxLCBub3cpOwogICAgICAgIGdhaW4uZ2Fpbi5leHBvbmVudGlhbFJhbXBUb1ZhbHVlQXRUaW1lKDAuMDg1LCBub3cgKyAwLjAyKTsKICAgICAgICBnYWluLmdhaW4uZXhwb25lbnRpYWxSYW1wVG9WYWx1ZUF0VGltZSgwLjAwMDgsIG5vdyArIGR1cmF0aW9uICogMS45KTsKCiAgICAgICAgb3ZlckdhaW4uZ2Fpbi5zZXRWYWx1ZUF0VGltZSgwLjAwMSwgbm93KTsKICAgICAgICBvdmVyR2Fpbi5nYWluLmV4cG9uZW50aWFsUmFtcFRvVmFsdWVBdFRpbWUoMC4wMiwgbm93ICsgMC4wMTUpOwogICAgICAgIG92ZXJHYWluLmdhaW4uZXhwb25lbnRpYWxSYW1wVG9WYWx1ZUF0VGltZSgwLjAwMDUsIG5vdyArIGR1cmF0aW9uICogMC45KTsKCiAgICAgICAgb3NjLmNvbm5lY3QoZ2Fpbik7CiAgICAgICAgb3ZlcnRvbmUuY29ubmVjdChvdmVyR2Fpbik7CiAgICAgICAgZ2Fpbi5jb25uZWN0KGF1ZGlvQ3R4LmRlc3RpbmF0aW9uKTsKICAgICAgICBvdmVyR2Fpbi5jb25uZWN0KGF1ZGlvQ3R4LmRlc3RpbmF0aW9uKTsKCiAgICAgICAgb3NjLnN0YXJ0KG5vdyk7CiAgICAgICAgb3ZlcnRvbmUuc3RhcnQobm93KTsKICAgICAgICBvc2Muc3RvcChub3cgKyBkdXJhdGlvbiAqIDIpOwogICAgICAgIG92ZXJ0b25lLnN0b3Aobm93ICsgZHVyYXRpb24pOwogICAgICB9CgogICAgICBmdW5jdGlvbiBzY2hlZHVsZU5leHRNZWxvZHlOb3RlKCkgewogICAgICAgIGlmICghbXVzaWNQbGF5aW5nKSByZXR1cm47CiAgICAgICAgY29uc3QgW2ZyZXEsIGR1cl0gPSBNRUxPRFlbbm90ZUluZGV4ICUgTUVMT0RZLmxlbmd0aF07CiAgICAgICAgcGxheUJlbGxOb3RlKGZyZXEsIGR1cik7CiAgICAgICAgbm90ZUluZGV4Kys7CiAgICAgICAgY29uc3QgcGF1c2UgPSBub3RlSW5kZXggJSBNRUxPRFkubGVuZ3RoID09PSAwID8gMTEwMCA6IGR1ciAqIDEwMDA7CiAgICAgICAgbWVsb2R5VGltZXIgPSBzZXRUaW1lb3V0KHNjaGVkdWxlTmV4dE1lbG9keU5vdGUsIHBhdXNlKTsKICAgICAgfQoKICAgICAgZnVuY3Rpb24gcGxheVNwYXJrbGVDaGltZSgpIHsKICAgICAgICB0cnkgewogICAgICAgICAgaWYgKCFhdWRpb0N0eCkgYXVkaW9DdHggPSBuZXcgKHdpbmRvdy5BdWRpb0NvbnRleHQgfHwgd2luZG93LndlYmtpdEF1ZGlvQ29udGV4dCkoKTsKICAgICAgICAgIGlmIChhdWRpb0N0eC5zdGF0ZSA9PT0gInN1c3BlbmRlZCIpIGF1ZGlvQ3R4LnJlc3VtZSgpOwogICAgICAgICAgWzUyMy4yNSwgNjU5LjI1LCA3ODMuOTksIDEwNDYuNV0uZm9yRWFjaCgoZiwgaWR4KSA9PiB7CiAgICAgICAgICAgIHNldFRpbWVvdXQoKCkgPT4gewogICAgICAgICAgICAgIGNvbnN0IG5vdyA9IGF1ZGlvQ3R4LmN1cnJlbnRUaW1lOwogICAgICAgICAgICAgIGNvbnN0IG8gPSBhdWRpb0N0eC5jcmVhdGVPc2NpbGxhdG9yKCk7CiAgICAgICAgICAgICAgY29uc3QgZyA9IGF1ZGlvQ3R4LmNyZWF0ZUdhaW4oKTsKICAgICAgICAgICAgICBvLnR5cGUgPSAic2luZSI7CiAgICAgICAgICAgICAgby5mcmVxdWVuY3kuc2V0VmFsdWVBdFRpbWUoZiwgbm93KTsKICAgICAgICAgICAgICBnLmdhaW4uc2V0VmFsdWVBdFRpbWUoMC4wMDEsIG5vdyk7CiAgICAgICAgICAgICAgZy5nYWluLmV4cG9uZW50aWFsUmFtcFRvVmFsdWVBdFRpbWUoMC4wNywgbm93ICsgMC4wMTUpOwogICAgICAgICAgICAgIGcuZ2Fpbi5leHBvbmVudGlhbFJhbXBUb1ZhbHVlQXRUaW1lKDAuMDAwOCwgbm93ICsgMC42NSk7CiAgICAgICAgICAgICAgby5jb25uZWN0KGcpOwogICAgICAgICAgICAgIGcuY29ubmVjdChhdWRpb0N0eC5kZXN0aW5hdGlvbik7CiAgICAgICAgICAgICAgby5zdGFydChub3cpOwogICAgICAgICAgICAgIG8uc3RvcChub3cgKyAwLjcpOwogICAgICAgICAgICB9LCBpZHggKiA3NSk7CiAgICAgICAgICB9KTsKICAgICAgICB9IGNhdGNoIChfKSB7fQogICAgICB9CgogICAgICBjb25zdCBtdXNpY0J0biA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJtdXNpY0J0biIpOwogICAgICBjb25zdCBtdXNpY0xhYmVsID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoIm11c2ljTGFiZWwiKTsKCiAgICAgIGZ1bmN0aW9uIHNldE11c2ljU3RhdGUodHVybk9uKSB7CiAgICAgICAgbXVzaWNQbGF5aW5nID0gdHVybk9uOwogICAgICAgIGlmICh0dXJuT24pIHsKICAgICAgICAgIG11c2ljQnRuLmNsYXNzTGlzdC5hZGQoInBsYXlpbmciKTsKICAgICAgICAgIG11c2ljTGFiZWwudGV4dENvbnRlbnQgPSAiTXVzaWMgT24iOwogICAgICAgICAgaWYgKGV4dGVybmFsQXVkaW8pIHsKICAgICAgICAgICAgZXh0ZXJuYWxBdWRpby5wbGF5KCkuY2F0Y2goKCkgPT4ge30pOwogICAgICAgICAgfSBlbHNlIHsKICAgICAgICAgICAgdHJ5IHsKICAgICAgICAgICAgICBpZiAoIWF1ZGlvQ3R4KSBhdWRpb0N0eCA9IG5ldyAod2luZG93LkF1ZGlvQ29udGV4dCB8fCB3aW5kb3cud2Via2l0QXVkaW9Db250ZXh0KSgpOwogICAgICAgICAgICAgIGlmIChhdWRpb0N0eC5zdGF0ZSA9PT0gInN1c3BlbmRlZCIpIGF1ZGlvQ3R4LnJlc3VtZSgpOwogICAgICAgICAgICAgIGNsZWFyVGltZW91dChtZWxvZHlUaW1lcik7CiAgICAgICAgICAgICAgc2NoZWR1bGVOZXh0TWVsb2R5Tm90ZSgpOwogICAgICAgICAgICB9IGNhdGNoIChfKSB7fQogICAgICAgICAgfQogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICBtdXNpY0J0bi5jbGFzc0xpc3QucmVtb3ZlKCJwbGF5aW5nIik7CiAgICAgICAgICBtdXNpY0xhYmVsLnRleHRDb250ZW50ID0gIk11c2ljIE9mZiI7CiAgICAgICAgICBjbGVhclRpbWVvdXQobWVsb2R5VGltZXIpOwogICAgICAgICAgaWYgKGV4dGVybmFsQXVkaW8pIGV4dGVybmFsQXVkaW8ucGF1c2UoKTsKICAgICAgICB9CiAgICAgIH0KCiAgICAgIG11c2ljQnRuLmFkZEV2ZW50TGlzdGVuZXIoImNsaWNrIiwgKCkgPT4gc2V0TXVzaWNTdGF0ZSghbXVzaWNQbGF5aW5nKSk7CgogICAgICAvLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KICAgICAgLy8gRU5WRUxPUEUgVU5TRUFMSU5HIFRSQU5TSVRJT04KICAgICAgLy8gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CiAgICAgIGNvbnN0IGVudmVsb3BlU3RhZ2UgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiZW52ZWxvcGVTdGFnZSIpOwogICAgICBjb25zdCBlbnZlbG9wZVNjcmVlbiA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJlbnZlbG9wZVNjcmVlbiIpOwogICAgICBjb25zdCBzdG9yeUNvbnRhaW5lciA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJzdG9yeUNvbnRhaW5lciIpOwogICAgICBsZXQgaXNPcGVuZWQgPSBmYWxzZTsKCiAgICAgIGZ1bmN0aW9uIG9wZW5FbnZlbG9wZSgpIHsKICAgICAgICBpZiAoaXNPcGVuZWQpIHJldHVybjsKICAgICAgICBpc09wZW5lZCA9IHRydWU7CiAgICAgICAgZW52ZWxvcGVTdGFnZS5jbGFzc0xpc3QuYWRkKCJvcGVuaW5nIik7CiAgICAgICAgc2V0TXVzaWNTdGF0ZSh0cnVlKTsKICAgICAgICBzZXRUaW1lb3V0KCgpID0+IHsKICAgICAgICAgIGVudmVsb3BlU2NyZWVuLmNsYXNzTGlzdC5hZGQoIm9wZW5lZCIpOwogICAgICAgICAgZG9jdW1lbnQuYm9keS5jbGFzc0xpc3QucmVtb3ZlKCJlbnZlbG9wZS1sb2NrZWQiKTsKICAgICAgICAgIHN0b3J5Q29udGFpbmVyLmNsYXNzTGlzdC5hZGQoInZpc2libGUiKTsKICAgICAgICAgIGluaXRTY3JhdGNoQ2FyZCgpOwogICAgICAgICAgYnVyc3RDb25mZXR0aSg0NSk7CiAgICAgICAgfSwgNjIwKTsKICAgICAgfQoKICAgICAgZW52ZWxvcGVTdGFnZS5hZGRFdmVudExpc3RlbmVyKCJjbGljayIsIG9wZW5FbnZlbG9wZSk7CiAgICAgIGVudmVsb3BlU3RhZ2UuYWRkRXZlbnRMaXN0ZW5lcigia2V5ZG93biIsIChlKSA9PiB7CiAgICAgICAgaWYgKGUua2V5ID09PSAiRW50ZXIiIHx8IGUua2V5ID09PSAiICIpIHsKICAgICAgICAgIGUucHJldmVudERlZmF1bHQoKTsKICAgICAgICAgIG9wZW5FbnZlbG9wZSgpOwogICAgICAgIH0KICAgICAgfSk7CgogICAgICAvLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KICAgICAgLy8gSU5URVJBQ1RJVkUgR09MRCBGT0lMIFNDUkFUQ0gtT0ZGIENBTlZBUwogICAgICAvLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KICAgICAgY29uc3Qgc2NyYXRjaENhbnZhcyA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJzY3JhdGNoQ2FudmFzIik7CiAgICAgIGNvbnN0IHNjcmF0Y2hTdGFnZSA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJzY3JhdGNoU3RhZ2UiKTsKICAgICAgY29uc3Qgc3RhdHVzVGV4dCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJzY3JhdGNoU3RhdHVzVGV4dCIpOwogICAgICBsZXQgc2NyYXRjaEN0eCA9IG51bGw7CiAgICAgIGxldCBpc0RyYXdpbmcgPSBmYWxzZTsKICAgICAgbGV0IHNjcmF0Y2hSZXZlYWxlZCA9IGZhbHNlOwogICAgICBsZXQgc3Ryb2tlQ291bnRlciA9IDA7CgogICAgICBmdW5jdGlvbiBpbml0U2NyYXRjaENhcmQoKSB7CiAgICAgICAgaWYgKCFzY3JhdGNoQ2FudmFzIHx8IGNmZy5zaG93U2NyYXRjaENhcmQgPT09IGZhbHNlKSByZXR1cm47CiAgICAgICAgY29uc3QgcmVjdCA9IHNjcmF0Y2hTdGFnZS5nZXRCb3VuZGluZ0NsaWVudFJlY3QoKTsKICAgICAgICBpZiAocmVjdC53aWR0aCA9PT0gMCB8fCByZWN0LmhlaWdodCA9PT0gMCkgcmV0dXJuOwoKICAgICAgICBjb25zdCBkcHIgPSBNYXRoLm1pbih3aW5kb3cuZGV2aWNlUGl4ZWxSYXRpbyB8fCAxLCAyKTsKICAgICAgICBzY3JhdGNoQ2FudmFzLndpZHRoID0gTWF0aC5mbG9vcihyZWN0LndpZHRoICogZHByKTsKICAgICAgICBzY3JhdGNoQ2FudmFzLmhlaWdodCA9IE1hdGguZmxvb3IocmVjdC5oZWlnaHQgKiBkcHIpOwogICAgICAgIHNjcmF0Y2hDYW52YXMuY2xhc3NMaXN0LnJlbW92ZSgicmV2ZWFsZWQiKTsKICAgICAgICBzY3JhdGNoUmV2ZWFsZWQgPSBmYWxzZTsKICAgICAgICBzdGF0dXNUZXh0LnRleHRDb250ZW50ID0gIlNjcmF0Y2ggfjQ1JSBvZiB0aGUgZ29sZCBmb2lsIHRvIHJldmVhbCI7CgogICAgICAgIHNjcmF0Y2hDdHggPSBzY3JhdGNoQ2FudmFzLmdldENvbnRleHQoIjJkIiwgeyB3aWxsUmVhZEZyZXF1ZW50bHk6IHRydWUgfSk7CiAgICAgICAgc2NyYXRjaEN0eC5zY2FsZShkcHIsIGRwcik7CiAgICAgICAgc2NyYXRjaEN0eC5nbG9iYWxDb21wb3NpdGVPcGVyYXRpb24gPSAic291cmNlLW92ZXIiOwoKICAgICAgICAvLyBCcnVzaGVkIE1ldGFsbGljIEdvbGQgRm9pbCBHcmFkaWVudAogICAgICAgIGNvbnN0IGdyYWQgPSBzY3JhdGNoQ3R4LmNyZWF0ZUxpbmVhckdyYWRpZW50KDAsIDAsIHJlY3Qud2lkdGgsIHJlY3QuaGVpZ2h0KTsKICAgICAgICBncmFkLmFkZENvbG9yU3RvcCgwLCAiI2U2YmU2YSIpOwogICAgICAgIGdyYWQuYWRkQ29sb3JTdG9wKDAuMjUsICIjZmZmMGJkIik7CiAgICAgICAgZ3JhZC5hZGRDb2xvclN0b3AoMC41LCAiI2NhYTA0OCIpOwogICAgICAgIGdyYWQuYWRkQ29sb3JTdG9wKDAuNzgsICIjZjdlMDljIik7CiAgICAgICAgZ3JhZC5hZGRDb2xvclN0b3AoMSwgIiNhNzdjMjQiKTsKICAgICAgICBzY3JhdGNoQ3R4LmZpbGxTdHlsZSA9IGdyYWQ7CiAgICAgICAgc2NyYXRjaEN0eC5maWxsUmVjdCgwLCAwLCByZWN0LndpZHRoLCByZWN0LmhlaWdodCk7CgogICAgICAgIC8vIFN1YnRsZSBtZXRhbGxpYyBzaGltbWVyIGxpbmVzICYgc3RhcnMKICAgICAgICBzY3JhdGNoQ3R4LnN0cm9rZVN0eWxlID0gInJnYmEoMjU1LCAyNTUsIDI1NSwgMC4yNCkiOwogICAgICAgIHNjcmF0Y2hDdHgubGluZVdpZHRoID0gMTsKICAgICAgICBmb3IgKGxldCBpID0gLXJlY3QuaGVpZ2h0OyBpIDwgcmVjdC53aWR0aDsgaSArPSAxOCkgewogICAgICAgICAgc2NyYXRjaEN0eC5iZWdpblBhdGgoKTsKICAgICAgICAgIHNjcmF0Y2hDdHgubW92ZVRvKGksIDApOwogICAgICAgICAgc2NyYXRjaEN0eC5saW5lVG8oaSArIHJlY3QuaGVpZ2h0LCByZWN0LmhlaWdodCk7CiAgICAgICAgICBzY3JhdGNoQ3R4LnN0cm9rZSgpOwogICAgICAgIH0KCiAgICAgICAgLy8gSW5uZXIgZGVjb3JhdGl2ZSBib3JkZXIKICAgICAgICBzY3JhdGNoQ3R4LnN0cm9rZVN0eWxlID0gInJnYmEoOTIsIDYwLCA4LCAwLjQ1KSI7CiAgICAgICAgc2NyYXRjaEN0eC5saW5lV2lkdGggPSAxLjU7CiAgICAgICAgc2NyYXRjaEN0eC5zdHJva2VSZWN0KDEyLCAxMiwgcmVjdC53aWR0aCAtIDI0LCByZWN0LmhlaWdodCAtIDI0KTsKCiAgICAgICAgLy8gRm9pbCBDYWxsLXRvLUFjdGlvbiBUZXh0CiAgICAgICAgc2NyYXRjaEN0eC5maWxsU3R5bGUgPSAiIzRkMzEwNSI7CiAgICAgICAgc2NyYXRjaEN0eC50ZXh0QWxpZ24gPSAiY2VudGVyIjsKICAgICAgICBzY3JhdGNoQ3R4LmZvbnQgPSAiNzAwIDEzcHggLWFwcGxlLXN5c3RlbSwgQmxpbmtNYWNTeXN0ZW1Gb250LCBzYW5zLXNlcmlmIjsKICAgICAgICBzY3JhdGNoQ3R4LmZpbGxUZXh0KCLinKYgR09MREVOIENIUklTVE1BUyBTVVJQUklTRSDinKYiLCByZWN0LndpZHRoIC8gMiwgcmVjdC5oZWlnaHQgLyAyIC0gMTQpOwogICAgICAgIHNjcmF0Y2hDdHguZm9udCA9ICI3MDAgMThweCBHZW9yZ2lhLCBzZXJpZiI7CiAgICAgICAgc2NyYXRjaEN0eC5maWxsVGV4dCgiU2NyYXRjaCBIZXJlIFdpdGggWW91ciBGaW5nZXIiLCByZWN0LndpZHRoIC8gMiwgcmVjdC5oZWlnaHQgLyAyICsgMTQpOwogICAgICAgIHNjcmF0Y2hDdHguZm9udCA9ICI1MDAgMTJweCAtYXBwbGUtc3lzdGVtLCBCbGlua01hY1N5c3RlbUZvbnQsIHNhbnMtc2VyaWYiOwogICAgICAgIHNjcmF0Y2hDdHguZmlsbFRleHQoInRvIHJldmVhbCB5b3VyIGhvbGlkYXkgZ2lmdCB1bmRlcm5lYXRoIiwgcmVjdC53aWR0aCAvIDIsIHJlY3QuaGVpZ2h0IC8gMiArIDM2KTsKICAgICAgfQoKICAgICAgZnVuY3Rpb24gc2NyYXRjaEF0KGNsaWVudFgsIGNsaWVudFkpIHsKICAgICAgICBpZiAoIXNjcmF0Y2hDdHggfHwgc2NyYXRjaFJldmVhbGVkKSByZXR1cm47CiAgICAgICAgY29uc3QgcmVjdCA9IHNjcmF0Y2hDYW52YXMuZ2V0Qm91bmRpbmdDbGllbnRSZWN0KCk7CiAgICAgICAgY29uc3QgeCA9IGNsaWVudFggLSByZWN0LmxlZnQ7CiAgICAgICAgY29uc3QgeSA9IGNsaWVudFkgLSByZWN0LnRvcDsKCiAgICAgICAgc2NyYXRjaEN0eC5nbG9iYWxDb21wb3NpdGVPcGVyYXRpb24gPSAiZGVzdGluYXRpb24tb3V0IjsKICAgICAgICBzY3JhdGNoQ3R4LmJlZ2luUGF0aCgpOwogICAgICAgIHNjcmF0Y2hDdHguYXJjKHgsIHksIDI2LCAwLCBNYXRoLlBJICogMik7CiAgICAgICAgc2NyYXRjaEN0eC5maWxsKCk7CgogICAgICAgIHN0cm9rZUNvdW50ZXIrKzsKICAgICAgICBpZiAoc3Ryb2tlQ291bnRlciAlIDggPT09IDApIHsKICAgICAgICAgIGNoZWNrU2NyYXRjaFByb2dyZXNzKCk7CiAgICAgICAgfQogICAgICB9CgogICAgICBmdW5jdGlvbiBjaGVja1NjcmF0Y2hQcm9ncmVzcygpIHsKICAgICAgICBpZiAoIXNjcmF0Y2hDdHggfHwgc2NyYXRjaFJldmVhbGVkKSByZXR1cm47CiAgICAgICAgY29uc3QgdyA9IHNjcmF0Y2hDYW52YXMud2lkdGg7CiAgICAgICAgY29uc3QgaCA9IHNjcmF0Y2hDYW52YXMuaGVpZ2h0OwogICAgICAgIGNvbnN0IGRhdGEgPSBzY3JhdGNoQ3R4LmdldEltYWdlRGF0YSgwLCAwLCB3LCBoKS5kYXRhOwogICAgICAgIGxldCBjbGVhcmVkID0gMDsKICAgICAgICBsZXQgdG90YWwgPSAwOwogICAgICAgIC8vIFNhbXBsZSBldmVyeSAxNnRoIHBpeGVsIGZvciBpbnN0YW50IHplcm8tbGFnIGNhbGN1bGF0aW9uCiAgICAgICAgZm9yIChsZXQgaSA9IDM7IGkgPCBkYXRhLmxlbmd0aDsgaSArPSA2NCkgewogICAgICAgICAgdG90YWwrKzsKICAgICAgICAgIGlmIChkYXRhW2ldIDwgOTApIGNsZWFyZWQrKzsKICAgICAgICB9CiAgICAgICAgY29uc3QgcGN0ID0gdG90YWwgPiAwID8gY2xlYXJlZCAvIHRvdGFsIDogMDsKICAgICAgICBpZiAocGN0ID49IDAuNDIpIHsKICAgICAgICAgIHNjcmF0Y2hSZXZlYWxlZCA9IHRydWU7CiAgICAgICAgICBzY3JhdGNoQ2FudmFzLmNsYXNzTGlzdC5hZGQoInJldmVhbGVkIik7CiAgICAgICAgICBzdGF0dXNUZXh0LnRleHRDb250ZW50ID0gIvCfjokgU3VycHJpc2UgdW5sb2NrZWQhIE1lcnJ5IENocmlzdG1hcyEiOwogICAgICAgICAgcGxheVNwYXJrbGVDaGltZSgpOwogICAgICAgICAgYnVyc3RDb25mZXR0aSg5MCk7CiAgICAgICAgfQogICAgICB9CgogICAgICBzY3JhdGNoQ2FudmFzLmFkZEV2ZW50TGlzdGVuZXIoInBvaW50ZXJkb3duIiwgKGUpID0+IHsKICAgICAgICBpc0RyYXdpbmcgPSB0cnVlOwogICAgICAgIHNjcmF0Y2hBdChlLmNsaWVudFgsIGUuY2xpZW50WSk7CiAgICAgIH0pOwogICAgICB3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcigicG9pbnRlcm1vdmUiLCAoZSkgPT4gewogICAgICAgIGlmICghaXNEcmF3aW5nKSByZXR1cm47CiAgICAgICAgc2NyYXRjaEF0KGUuY2xpZW50WCwgZS5jbGllbnRZKTsKICAgICAgfSk7CiAgICAgIHdpbmRvdy5hZGRFdmVudExpc3RlbmVyKCJwb2ludGVydXAiLCAoKSA9PiB7CiAgICAgICAgaWYgKGlzRHJhd2luZykgewogICAgICAgICAgaXNEcmF3aW5nID0gZmFsc2U7CiAgICAgICAgICBjaGVja1NjcmF0Y2hQcm9ncmVzcygpOwogICAgICAgIH0KICAgICAgfSk7CgogICAgICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgicmVzZXRTY3JhdGNoQnRuIikuYWRkRXZlbnRMaXN0ZW5lcigiY2xpY2siLCBpbml0U2NyYXRjaENhcmQpOwogICAgICB3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcigicmVzaXplIiwgKCkgPT4gewogICAgICAgIGlmIChpc09wZW5lZCAmJiAhc2NyYXRjaFJldmVhbGVkKSBpbml0U2NyYXRjaENhcmQoKTsKICAgICAgfSk7CgogICAgICAvLyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KICAgICAgLy8gQU1CSUVOVCBTTk9XRkFMTCAmIENPTkZFVFRJIENBTlZBU0VTCiAgICAgIC8vID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQogICAgICBjb25zdCBzbm93Q2FudmFzID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInNub3dDYW52YXMiKTsKICAgICAgY29uc3Qgc25vd0N0eCA9IHNub3dDYW52YXMuZ2V0Q29udGV4dCgiMmQiKTsKICAgICAgY29uc3QgY29uZmV0dGlDYW52YXMgPSBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgiY29uZmV0dGlDYW52YXMiKTsKICAgICAgY29uc3QgY29uZmV0dGlDdHggPSBjb25mZXR0aUNhbnZhcy5nZXRDb250ZXh0KCIyZCIpOwogICAgICBsZXQgZmxha2VzID0gW107CiAgICAgIGxldCBjb25mZXR0aVBpZWNlcyA9IFtdOwoKICAgICAgZnVuY3Rpb24gcmVzaXplQW1iaWVudENhbnZhc2VzKCkgewogICAgICAgIHNub3dDYW52YXMud2lkdGggPSB3aW5kb3cuaW5uZXJXaWR0aDsKICAgICAgICBzbm93Q2FudmFzLmhlaWdodCA9IHdpbmRvdy5pbm5lckhlaWdodDsKICAgICAgICBjb25mZXR0aUNhbnZhcy53aWR0aCA9IHdpbmRvdy5pbm5lcldpZHRoOwogICAgICAgIGNvbmZldHRpQ2FudmFzLmhlaWdodCA9IHdpbmRvdy5pbm5lckhlaWdodDsKICAgICAgfQogICAgICByZXNpemVBbWJpZW50Q2FudmFzZXMoKTsKICAgICAgd2luZG93LmFkZEV2ZW50TGlzdGVuZXIoInJlc2l6ZSIsIHJlc2l6ZUFtYmllbnRDYW52YXNlcyk7CgogICAgICBmb3IgKGxldCBpID0gMDsgaSA8IDY1OyBpKyspIHsKICAgICAgICBmbGFrZXMucHVzaCh7CiAgICAgICAgICB4OiBNYXRoLnJhbmRvbSgpICogd2luZG93LmlubmVyV2lkdGgsCiAgICAgICAgICB5OiBNYXRoLnJhbmRvbSgpICogd2luZG93LmlubmVySGVpZ2h0LAogICAgICAgICAgcjogTWF0aC5yYW5kb20oKSAqIDIuNiArIDAuOSwKICAgICAgICAgIHNwZWVkWTogTWF0aC5yYW5kb20oKSAqIDAuNzUgKyAwLjM1LAogICAgICAgICAgZHJpZnQ6IChNYXRoLnJhbmRvbSgpIC0gMC41KSAqIDAuNDUsCiAgICAgICAgICBhbHBoYTogTWF0aC5yYW5kb20oKSAqIDAuNTUgKyAwLjI1CiAgICAgICAgfSk7CiAgICAgIH0KCiAgICAgIGZ1bmN0aW9uIGJ1cnN0Q29uZmV0dGkoY291bnQpIHsKICAgICAgICBjb25zdCBjb2xvcnMgPSBbIiNmNmRmOWUiLCAiI2Q5YjE1ZiIsICIjZmZmZmZmIiwgIiNlMDQ4NWEiLCAiIzM1YTg3MyJdOwogICAgICAgIGZvciAobGV0IGkgPSAwOyBpIDwgY291bnQ7IGkrKykgewogICAgICAgICAgY29uZmV0dGlQaWVjZXMucHVzaCh7CiAgICAgICAgICAgIHg6IHdpbmRvdy5pbm5lcldpZHRoICogKDAuMiArIE1hdGgucmFuZG9tKCkgKiAwLjYpLAogICAgICAgICAgICB5OiB3aW5kb3cuaW5uZXJIZWlnaHQgKiAwLjMyLAogICAgICAgICAgICB2eDogKE1hdGgucmFuZG9tKCkgLSAwLjUpICogOSwKICAgICAgICAgICAgdnk6IC1NYXRoLnJhbmRvbSgpICogOCAtIDIsCiAgICAgICAgICAgIHNpemU6IE1hdGgucmFuZG9tKCkgKiA2ICsgNCwKICAgICAgICAgICAgY29sb3I6IGNvbG9yc1tNYXRoLmZsb29yKE1hdGgucmFuZG9tKCkgKiBjb2xvcnMubGVuZ3RoKV0sCiAgICAgICAgICAgIHJvdDogTWF0aC5yYW5kb20oKSAqIE1hdGguUEkgKiAyLAogICAgICAgICAgICB2Um90OiAoTWF0aC5yYW5kb20oKSAtIDAuNSkgKiAwLjIsCiAgICAgICAgICAgIGxpZmU6IDEKICAgICAgICAgIH0pOwogICAgICAgIH0KICAgICAgfQoKICAgICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoImNlbGVicmF0ZUJ0biIpLmFkZEV2ZW50TGlzdGVuZXIoImNsaWNrIiwgKCkgPT4gewogICAgICAgIHBsYXlTcGFya2xlQ2hpbWUoKTsKICAgICAgICBidXJzdENvbmZldHRpKDk1KTsKICAgICAgfSk7CgogICAgICBmdW5jdGlvbiBhbmltYXRlUGFydGljbGVzKCkgewogICAgICAgIHNub3dDdHguY2xlYXJSZWN0KDAsIDAsIHNub3dDYW52YXMud2lkdGgsIHNub3dDYW52YXMuaGVpZ2h0KTsKICAgICAgICBmbGFrZXMuZm9yRWFjaCgoZikgPT4gewogICAgICAgICAgZi55ICs9IGYuc3BlZWRZOwogICAgICAgICAgZi54ICs9IGYuZHJpZnQ7CiAgICAgICAgICBpZiAoZi55ID4gc25vd0NhbnZhcy5oZWlnaHQgKyA2KSB7CiAgICAgICAgICAgIGYueSA9IC02OwogICAgICAgICAgICBmLnggPSBNYXRoLnJhbmRvbSgpICogc25vd0NhbnZhcy53aWR0aDsKICAgICAgICAgIH0KICAgICAgICAgIGlmIChmLnggPiBzbm93Q2FudmFzLndpZHRoICsgNikgZi54ID0gLTY7CiAgICAgICAgICBpZiAoZi54IDwgLTYpIGYueCA9IHNub3dDYW52YXMud2lkdGggKyA2OwoKICAgICAgICAgIHNub3dDdHguYmVnaW5QYXRoKCk7CiAgICAgICAgICBzbm93Q3R4LmFyYyhmLngsIGYueSwgZi5yLCAwLCBNYXRoLlBJICogMik7CiAgICAgICAgICBzbm93Q3R4LmZpbGxTdHlsZSA9IGByZ2JhKDI1NSwgMjUwLCAyNDAsICR7Zi5hbHBoYX0pYDsKICAgICAgICAgIHNub3dDdHguZmlsbCgpOwogICAgICAgIH0pOwoKICAgICAgICBjb25mZXR0aUN0eC5jbGVhclJlY3QoMCwgMCwgY29uZmV0dGlDYW52YXMud2lkdGgsIGNvbmZldHRpQ2FudmFzLmhlaWdodCk7CiAgICAgICAgZm9yIChsZXQgaSA9IGNvbmZldHRpUGllY2VzLmxlbmd0aCAtIDE7IGkgPj0gMDsgaS0tKSB7CiAgICAgICAgICBjb25zdCBwID0gY29uZmV0dGlQaWVjZXNbaV07CiAgICAgICAgICBwLnggKz0gcC52eDsKICAgICAgICAgIHAueSArPSBwLnZ5OwogICAgICAgICAgcC52eSArPSAwLjIyOwogICAgICAgICAgcC5yb3QgKz0gcC52Um90OwogICAgICAgICAgcC5saWZlIC09IDAuMDExOwogICAgICAgICAgaWYgKHAubGlmZSA8PSAwIHx8IHAueSA+IGNvbmZldHRpQ2FudmFzLmhlaWdodCArIDIwKSB7CiAgICAgICAgICAgIGNvbmZldHRpUGllY2VzLnNwbGljZShpLCAxKTsKICAgICAgICAgICAgY29udGludWU7CiAgICAgICAgICB9CiAgICAgICAgICBjb25mZXR0aUN0eC5zYXZlKCk7CiAgICAgICAgICBjb25mZXR0aUN0eC50cmFuc2xhdGUocC54LCBwLnkpOwogICAgICAgICAgY29uZmV0dGlDdHgucm90YXRlKHAucm90KTsKICAgICAgICAgIGNvbmZldHRpQ3R4Lmdsb2JhbEFscGhhID0gTWF0aC5tYXgoMCwgcC5saWZlKTsKICAgICAgICAgIGNvbmZldHRpQ3R4LmZpbGxTdHlsZSA9IHAuY29sb3I7CiAgICAgICAgICBjb25mZXR0aUN0eC5maWxsUmVjdCgtcC5zaXplIC8gMiwgLXAuc2l6ZSAvIDIsIHAuc2l6ZSwgcC5zaXplICogMC42NSk7CiAgICAgICAgICBjb25mZXR0aUN0eC5yZXN0b3JlKCk7CiAgICAgICAgfQogICAgICAgIHJlcXVlc3RBbmltYXRpb25GcmFtZShhbmltYXRlUGFydGljbGVzKTsKICAgICAgfQogICAgICBhbmltYXRlUGFydGljbGVzKCk7CgogICAgICAvLyBBdXRvLW9wZW4gc3VwcG9ydCB3aGVuIFNlbGxlciBTdHVkaW8gcmVxdWVzdHMgaW5zdGFudCBwcmV2aWV3ICg/b3Blbj0xKQogICAgICBpZiAod2luZG93LmxvY2F0aW9uLnNlYXJjaC5pbmNsdWRlcygib3Blbj0xIikpIHsKICAgICAgICBlbnZlbG9wZVNjcmVlbi5jbGFzc0xpc3QuYWRkKCJvcGVuZWQiKTsKICAgICAgICBkb2N1bWVudC5ib2R5LmNsYXNzTGlzdC5yZW1vdmUoImVudmVsb3BlLWxvY2tlZCIpOwogICAgICAgIHN0b3J5Q29udGFpbmVyLmNsYXNzTGlzdC5hZGQoInZpc2libGUiKTsKICAgICAgICBpc09wZW5lZCA9IHRydWU7CiAgICAgICAgc2V0VGltZW91dChpbml0U2NyYXRjaENhcmQsIDEwMCk7CiAgICAgIH0KICAgIH0pKCk7CiAgPC9zY3JpcHQ+CjwvYm9keT4KPC9odG1sPgo=";
+      const binStr = atob(b64Template);
+      const bytes = new Uint8Array(binStr.length);
+      for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+      const MASTER_TEMPLATE = new TextDecoder("utf-8").decode(bytes);
+
+      let memoriesState = [
+        {
+          date: "Spring 2026",
+          title: "Unplanned Adventures",
+          caption: "Even the simplest errands turned into my favorite days whenever you were next to me.",
+          image: "scene:cocoa"
+        },
+        {
+          date: "Mid-Year 2026",
+          title: "Late-Night Talks & Big Dreams",
+          caption: "Laughing until midnight and planning everything we want to build together.",
+          image: "scene:starlight"
+        },
+        {
+          date: "Autumn 2026",
+          title: "Through Busy Weeks & Wins",
+          caption: "Thank you for being my calm, my cheerleader, and my safe place all year long.",
+          image: "scene:lanterns"
+        },
+        {
+          date: "December 2026",
+          title: "Wrapped in Holiday Lights",
+          caption: "Ending 2026 grateful for every single memory—and excited for everything ahead.",
+          image: "scene:tree"
+        }
+      ];
+
+      const PRESETS = {
+        couple: {
+          theme: "velvet-gold",
+          recipientName: "Ama Mensah",
+          senderName: "Kwame",
+          envelopeKicker: "Special Christmas Delivery · 2026",
+          heroTitle: "Merry Christmas, My Favorite Person",
+          heroSubtitle: "Before 2026 wraps up, I wanted to gather my favorite memories with you—and hide a special Christmas surprise right inside.",
+          showStats: true,
+          stats: [
+            { number: "365", label: "Days of Laughs Together" },
+            { number: "100%", label: "My Favorite Part of 2026" },
+            { number: "∞", label: "Wishes For Us in 2027" }
+          ],
+          showMemories: true,
+          memories: [
+            { date: "Spring 2026", title: "Unplanned Adventures", caption: "Even the simplest errands turned into my favorite days whenever you were next to me.", image: "scene:cocoa" },
+            { date: "Mid-Year 2026", title: "Late-Night Talks & Big Dreams", caption: "Laughing until midnight and planning everything we want to build together.", image: "scene:starlight" },
+            { date: "Autumn 2026", title: "Through Busy Weeks & Wins", caption: "Thank you for being my calm, my cheerleader, and my safe place all year long.", image: "scene:lanterns" },
+            { date: "December 2026", title: "Wrapped in Holiday Lights", caption: "Ending 2026 grateful for every single memory—and excited for everything ahead.", image: "scene:tree" }
+          ],
+          showScratchCard: true,
+          prizeEmoji: "🥂✨🎁",
+          prizeCode: "CHRISTMAS VIP PASS · 2026",
+          prizeHeadline: "Christmas Dinner Date & Gift Reveal!",
+          prizeDetails: "Dress up on December 26 at 7:00 PM—dinner at your favorite spot is 100% on me, and check the envelope tucked under the tree!",
+          showLetter: true,
+          letterDate: "Christmas 2026",
+          letterSalutation: "Dearest Ama,",
+          letterBody: "Looking back at 2026, the brightest part of every single month was sharing it with you. Thank you for your kindness, your patience, your infectious laugh, and the warmth you bring into every room.\n\nMay this Christmas wrap you in peace, joy, and all the love you give so effortlessly to everyone around you.",
+          letterSignoff: "With all my love, Kwame ♥"
+        },
+        family: {
+          theme: "emerald-pine",
+          recipientName: "Mom & Dad",
+          senderName: "Tobi & Esi",
+          envelopeKicker: "Family Christmas Keepsake · 2026",
+          heroTitle: "Merry Christmas, Mom & Dad!",
+          heroSubtitle: "Thank you for filling 2026 with warmth, wisdom, and unconditional love. Here is our year wrapped up for you.",
+          showStats: true,
+          stats: [
+            { number: "52", label: "Weeks of Family Blessings" },
+            { number: "1,000+", label: "Warm Meals & Big Laughs" },
+            { number: "#1", label: "Parents in the World" }
+          ],
+          showMemories: true,
+          memories: [
+            { date: "Easter 2026", title: "Full House & Full Hearts", caption: "Everyone gathered around the table laughing for hours.", image: "scene:cocoa" },
+            { date: "August 2026", title: "Celebrating Big Milestones", caption: "We could never have reached this year's wins without your prayers and support.", image: "scene:lanterns" },
+            { date: "December 2026", title: "Home for the Holidays", caption: "Nothing beats Christmas music and lights at home.", image: "scene:tree" }
+          ],
+          showScratchCard: true,
+          prizeEmoji: "🍽️🎄🎁",
+          prizeCode: "FAMILY HOLIDAY VOUCHER",
+          prizeHeadline: "Holiday Treat & New Year's Brunch!",
+          prizeDetails: "Put your feet up this week—we have arranged a special holiday gift hamper & New Year's brunch for the two of you!",
+          showLetter: true,
+          letterDate: "December 25, 2026",
+          letterSalutation: "Dearest Mom & Dad,",
+          letterBody: "Every year we appreciate even more everything you poured into raising us. Thank you for being our anchor throughout 2026.\n\nMay this Christmas bring you deep rest, good health, and overflowing joy in 2027.",
+          letterSignoff: "With all our gratitude, Tobi & Esi ♥"
+        },
+        bestie: {
+          theme: "winter-rose",
+          recipientName: "Nana Yaa",
+          senderName: "Efua",
+          envelopeKicker: "Bestie Holiday Wrapped · 2026",
+          heroTitle: "Merry Christmas To My Ride-or-Die!",
+          heroSubtitle: "We survived 2026, laughed through the chaos, and made iconic memories. Scratch below for your Christmas treat!",
+          showStats: true,
+          stats: [
+            { number: "400+", label: "Voice Notes & Memes Sent" },
+            { number: "24/7", label: "Unmatched Bestie Energy" },
+            { number: "2027", label: "Bigger Trips Ahead" }
+          ],
+          showMemories: true,
+          memories: [
+            { date: "March 2026", title: "Coffee & Therapy Sessions", caption: "Solving all our life problems over iced coffee and pastries.", image: "scene:cocoa" },
+            { date: "September 2026", title: "Dressed Up & Glowing", caption: "Nobody hypes me up the way you always do.", image: "scene:starlight" },
+            { date: "December 2026", title: "Festive Season Ready", caption: "Cheers to another December of great music and zero stress!", image: "scene:lanterns" }
+          ],
+          showScratchCard: true,
+          prizeEmoji: "💅☕✨",
+          prizeCode: "BESTIE TREAT PASS · 2026",
+          prizeHeadline: "Holiday Nails / Coffee Date On Me!",
+          prizeDetails: "Pick any afternoon between Dec 27 and Jan 3—your holiday manicure or brunch date is 100% covered by me!",
+          showLetter: true,
+          letterDate: "Christmas 2026",
+          letterSalutation: "To my favorite human,",
+          letterBody: "Thank you for listening to every rant, celebrating every tiny win, and keeping me sane all through 2026. Friendship like yours is the rarest gift.\n\nWishing you the happiest Christmas and your biggest glow-up year yet in 2027!",
+          letterSignoff: "Love always, Efua ✨"
+        },
+        quick: {
+          theme: "midnight-starlight",
+          recipientName: "Michael",
+          senderName: "Sarah",
+          envelopeKicker: "Golden Christmas Reveal · 2026",
+          heroTitle: "Merry Christmas, Michael!",
+          heroSubtitle: "I tucked your main Christmas gift inside a digital gold scratch card—rub the foil below to see what awaits!",
+          showStats: false,
+          stats: [],
+          showMemories: false,
+          memories: [],
+          showScratchCard: true,
+          prizeEmoji: "🎟️✈️🎄",
+          prizeCode: "SURPRISE UNLOCKED · 2026",
+          prizeHeadline: "Weekend Escape & Concert Tickets!",
+          prizeDetails: "Check your email inbox at 10:00 AM and pack a light bag for this weekend!",
+          showLetter: true,
+          letterDate: "December 25, 2026",
+          letterSalutation: "Merry Christmas Michael,",
+          letterBody: "Wanted to surprise you in a fun new way this Christmas! Thank you for an unforgettable 2026—can't wait to celebrate together.",
+          letterSignoff: "Warmest wishes, Sarah ♥"
+        }
+      };
+
+      const $ = (id) => document.getElementById(id);
+
+      function showToast(msg) {
+        const t = $("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2600);
+      }
+
+      function renderMemoriesEditor() {
+        const list = $("memoriesList");
+        list.innerHTML = "";
+        memoriesState.forEach((m, idx) => {
+          const box = document.createElement("div");
+          box.className = "memory-item";
+          const isDataImg = (m.image || "").startsWith("data:image");
+
+          box.innerHTML = `
+            <div class="memory-head">
+              <span>Polaroid #${idx + 1}</span>
+              <button type="button" class="remove-btn" data-remove="${idx}">Remove</button>
+            </div>
+            <div class="grid-2" style="margin-bottom:8px;">
+              <div class="field" style="margin-bottom:0;">
+                <label>Date / Badge</label>
+                <input type="text" data-idx="${idx}" data-key="date" value="${escapeAttr(m.date)}" />
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label>Card Title</label>
+                <input type="text" data-idx="${idx}" data-key="title" value="${escapeAttr(m.title)}" />
+              </div>
+            </div>
+            <div class="field" style="margin-bottom:8px;">
+              <label>Short Caption</label>
+              <input type="text" data-idx="${idx}" data-key="caption" value="${escapeAttr(m.caption)}" />
+            </div>
+            <div class="upload-row">
+              <label class="file-pill">
+                📷 Upload Photo / Canva PNG
+                <input type="file" accept="image/*" data-upload="${idx}" />
+              </label>
+              <select data-scene="${idx}" style="background:#0d131d;color:#e2e8f0;border:1px solid #2e3c52;border-radius:7px;padding:6px 8px;font-size:12px;">
+                <option value="" ${isDataImg ? "selected" : ""}>${isDataImg ? "✅ Custom Photo Embedded" : "Or choose built-in scene..."}</option>
+                <option value="scene:cocoa" ${m.image === "scene:cocoa" ? "selected" : ""}>☕ Festive Cocoa Mugs</option>
+                <option value="scene:starlight" ${m.image === "scene:starlight" ? "selected" : ""}>🌙 Starlit Winter Walk</option>
+                <option value="scene:lanterns" ${m.image === "scene:lanterns" ? "selected" : ""}>🎁 Warm Lights &amp; Gifts</option>
+                <option value="scene:tree" ${m.image === "scene:tree" ? "selected" : ""}>🎄 Decorated Christmas Tree</option>
+              </select>
+            </div>
+          `;
+          list.appendChild(box);
+        });
+
+        list.querySelectorAll("input[data-key]").forEach((inp) => {
+          inp.addEventListener("input", (e) => {
+            const i = Number(e.target.dataset.idx);
+            memoriesState[i][e.target.dataset.key] = e.target.value;
+            schedulePreviewUpdate();
+          });
+        });
+
+        list.querySelectorAll("select[data-scene]").forEach((sel) => {
+          sel.addEventListener("change", (e) => {
+            const i = Number(e.target.dataset.scene);
+            if (e.target.value) {
+              memoriesState[i].image = e.target.value;
+              renderMemoriesEditor();
+              updatePreview();
+            }
+          });
+        });
+
+        list.querySelectorAll("button[data-remove]").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            const i = Number(e.target.dataset.remove);
+            memoriesState.splice(i, 1);
+            renderMemoriesEditor();
+            updatePreview();
+          });
+        });
+
+        list.querySelectorAll("input[data-upload]").forEach((fileInp) => {
+          fileInp.addEventListener("change", (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const i = Number(e.target.dataset.upload);
+            compressImageFile(file, 920, 0.82, (dataUrl) => {
+              memoriesState[i].image = dataUrl;
+              renderMemoriesEditor();
+              updatePreview();
+              showToast("Photo compressed & embedded!");
+            });
+          });
+        });
+      }
+
+      function escapeAttr(str) {
+        return String(str || "")
+          .replace(/&/g, "&amp;")
+          .replace(/"/g, "&quot;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      // Resize & compress uploaded photo so exported index.html stays lightweight & 100% standalone
+      function compressImageFile(file, maxDim, quality, callback) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            let w = img.width;
+            let h = img.height;
+            if (w > maxDim || h > maxDim) {
+              if (w >= h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            const c = document.createElement("canvas");
+            c.width = w;
+            c.height = h;
+            const ctx = c.getContext("2d");
+            ctx.drawImage(img, 0, 0, w, h);
+            callback(c.toDataURL("image/jpeg", quality));
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      $("addMemoryBtn").addEventListener("click", () => {
+        if (memoriesState.length >= 8) {
+          showToast("Up to 8 Polaroids recommended for fast mobile loading");
+          return;
+        }
+        memoriesState.push({
+          date: "December 2026",
+          title: "Favorite Holiday Memory",
+          caption: "Another unforgettable moment from this year.",
+          image: "scene:tree"
+        });
+        renderMemoriesEditor();
+        updatePreview();
+      });
+
+      function buildConfigFromForm() {
+        return {
+          theme: $("themeSelect").value,
+          recipientName: $("recipientName").value.trim(),
+          senderName: $("senderName").value.trim(),
+          envelopeKicker: $("envelopeKicker").value.trim(),
+          heroTitle: $("heroTitle").value.trim(),
+          heroSubtitle: $("heroSubtitle").value.trim(),
+          musicUrl: "",
+          showStats: $("showStats").checked,
+          stats: [
+            { number: $("stat1Num").value.trim(), label: $("stat1Lbl").value.trim() },
+            { number: $("stat2Num").value.trim(), label: $("stat2Lbl").value.trim() },
+            { number: $("stat3Num").value.trim(), label: $("stat3Lbl").value.trim() }
+          ],
+          showMemories: $("showMemories").checked,
+          memoriesEyebrow: "Our 2026 Wrapped",
+          memoriesHeading: "Moments That Made My Year",
+          memories: memoriesState,
+          showScratchCard: $("showScratchCard").checked,
+          scratchCardHeading: "Scratch to Unlock Your Surprise",
+          prizeEmoji: $("prizeEmoji").value.trim(),
+          prizeHeadline: $("prizeHeadline").value.trim(),
+          prizeDetails: $("prizeDetails").value.trim(),
+          prizeCode: $("prizeCode").value.trim(),
+          showLetter: $("showLetter").checked,
+          letterDate: $("letterDate").value.trim(),
+          letterSalutation: $("letterSalutation").value.trim(),
+          letterBody: $("letterBody").value,
+          letterSignoff: $("letterSignoff").value.trim()
+        };
+      }
+
+      function buildCustomerHtml() {
+        const cfg = buildConfigFromForm();
+        const jsonText = JSON.stringify(cfg, null, 2).replace(/<\/script>/gi, "<\\/script>");
+        const block = "/* === START CUSTOMER CONFIG === */\n    window.CARD_CONFIG = " + jsonText + ";\n    /* === END CUSTOMER CONFIG === */";
+        return MASTER_TEMPLATE.replace(
+          /\/\* === START CUSTOMER CONFIG === \*\/[\s\S]*?\/\* === END CUSTOMER CONFIG === \*\//,
+          () => block
+        );
+      }
+
+      let previewDebounce = null;
+      function schedulePreviewUpdate() {
+        clearTimeout(previewDebounce);
+        previewDebounce = setTimeout(updatePreview, 380);
+      }
+
+      function updatePreview() {
+        const html = buildCustomerHtml();
+        $("previewIframe").srcdoc = html;
+        renderQrAndGiftCard();
+      }
+
+      // Wire inputs
+      document.querySelectorAll(".editor-pane input, .editor-pane textarea, .editor-pane select").forEach((el) => {
+        if (el.closest("#memoriesList")) return;
+        el.addEventListener("input", schedulePreviewUpdate);
+        el.addEventListener("change", schedulePreviewUpdate);
+      });
+
+      $("refreshPreviewBtn").addEventListener("click", () => {
+        updatePreview();
+        showToast("Live preview refreshed!");
+      });
+
+      // Presets
+      document.querySelectorAll(".preset-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const p = PRESETS[btn.dataset.preset];
+          if (!p) return;
+          $("themeSelect").value = p.theme;
+          $("recipientName").value = p.recipientName;
+          $("senderName").value = p.senderName;
+          $("envelopeKicker").value = p.envelopeKicker;
+          $("heroTitle").value = p.heroTitle;
+          $("heroSubtitle").value = p.heroSubtitle;
+          $("showStats").checked = p.showStats;
+          if (p.stats.length >= 3) {
+            $("stat1Num").value = p.stats[0].number; $("stat1Lbl").value = p.stats[0].label;
+            $("stat2Num").value = p.stats[1].number; $("stat2Lbl").value = p.stats[1].label;
+            $("stat3Num").value = p.stats[2].number; $("stat3Lbl").value = p.stats[2].label;
+          }
+          $("showMemories").checked = p.showMemories;
+          memoriesState = JSON.parse(JSON.stringify(p.memories));
+          $("showScratchCard").checked = p.showScratchCard;
+          $("prizeEmoji").value = p.prizeEmoji;
+          $("prizeCode").value = p.prizeCode;
+          $("prizeHeadline").value = p.prizeHeadline;
+          $("prizeDetails").value = p.prizeDetails;
+          $("showLetter").checked = p.showLetter;
+          $("letterDate").value = p.letterDate;
+          $("letterSalutation").value = p.letterSalutation;
+          $("letterBody").value = p.letterBody;
+          $("letterSignoff").value = p.letterSignoff;
+
+          const slug = p.recipientName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "vip-gift";
+          $("ghFolder").value = slug + "-26";
+
+          renderMemoriesEditor();
+          updatePreview();
+          showToast("Loaded preset: " + btn.textContent.trim());
+        });
+      });
+
+      // Tabs
+      document.querySelectorAll(".tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          const isQr = btn.dataset.tab === "qr";
+          $("phonePanel").classList.toggle("hidden", isQr);
+          $("qrPanel").classList.toggle("active", isQr);
+          if (isQr) renderQrAndGiftCard();
+        });
+      });
+
+      // ==========================================
+      // GITHUB URL + ISO QR CODE + PRINTABLE GIFT CARD
+      // ==========================================
+      function getCustomerUrl() {
+        const user = ($("ghUser").value.trim() || "your-github-name").replace(/^@/, "");
+        const repo = ($("ghRepo").value.trim() || "christmas-2026").replace(/^\/|\/$/g, "");
+        const folder = ($("ghFolder").value.trim() || "customer-card").replace(/^\/|\/$/g, "");
+        return `https://${user}.github.io/${repo}/${folder}/`;
+      }
+
+      ["ghUser", "ghRepo", "ghFolder"].forEach((id) => {
+        $(id).addEventListener("input", renderQrAndGiftCard);
+      });
+
+      function createQrInstance(url) {
+        const qr = qrcode(0, "M");
+        qr.addData(url);
+        qr.make();
+        return qr;
+      }
+
+      function buildQrSvgMarkup(url, darkColor) {
+        const qr = createQrInstance(url);
+        const count = qr.getModuleCount();
+        const margin = 4;
+        const size = count + margin * 2;
+        let pathData = "";
+        for (let r = 0; r < count; r++) {
+          for (let c = 0; c < count; c++) {
+            if (qr.isDark(r, c)) {
+              pathData += `M${c + margin},${r + margin}h1v1h-1z`;
+            }
+          }
+        }
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="1024" height="1024" shape-rendering="crispEdges">
+  <rect width="${size}" height="${size}" fill="#FDF8EF"/>
+  <path d="${pathData}" fill="${darkColor || "#24060D"}"/>
+</svg>`;
+      }
+
+      function renderQrAndGiftCard() {
+        const url = getCustomerUrl();
+        $("liveUrlDisplay").textContent = url;
+        const folderClean = ($("ghFolder").value.trim() || "customer-card").replace(/^\/|\/$/g, "");
+        if ($("pathLabel")) $("pathLabel").textContent = `${folderClean}/index.html`;
+
+        const cfg = buildConfigFromForm();
+        const palettes = {
+          "velvet-gold": { bg1: "#3d0b17", bg2: "#1e040a", accent: "#8f1d2c", qr: "#2b0710" },
+          "emerald-pine": { bg1: "#113827", bg2: "#071911", accent: "#18583b", qr: "#0a2419" },
+          "midnight-starlight": { bg1: "#13264e", bg2: "#070e20", accent: "#1e3d78", qr: "#0b1733" },
+          "winter-rose": { bg1: "#47182e", bg2: "#210914", accent: "#8c2f52", qr: "#2b0c1b" }
+        };
+        const pal = palettes[cfg.theme] || palettes["velvet-gold"];
+
+        const canvas = $("giftCardCanvas");
+        const ctx = canvas.getContext("2d");
+        const W = canvas.width;
+        const H = canvas.height;
+
+        // Rich Festive Background
+        const bgGrad = ctx.createRadialGradient(W / 2, H * 0.25, 60, W / 2, H / 2, H * 0.85);
+        bgGrad.addColorStop(0, pal.bg1);
+        bgGrad.addColorStop(1, pal.bg2);
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Outer & Inner Gold Foil Borders
+        ctx.strokeStyle = "#d9b15f";
+        ctx.lineWidth = 6;
+        ctx.strokeRect(46, 46, W - 92, H - 92);
+        ctx.strokeStyle = "rgba(246, 223, 158, 0.45)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(64, 64, W - 128, H - 128);
+
+        // Cream Inner Keepsake Arch Card
+        ctx.fillStyle = "#fdf8ef";
+        roundRect(ctx, 108, 120, W - 216, H - 240, 28);
+        ctx.fill();
+
+        ctx.strokeStyle = "#d9b15f";
+        ctx.lineWidth = 3;
+        roundRect(ctx, 128, 140, W - 256, H - 280, 20);
+        ctx.stroke();
+
+        // Top Header Text
+        ctx.fillStyle = pal.accent;
+        ctx.textAlign = "center";
+        ctx.font = "700 24px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.fillText("✦ SPECIAL CHRISTMAS SURPRISE · 2026 ✦", W / 2, 225);
+
+        ctx.fillStyle = "#231414";
+        ctx.font = "700 56px Georgia, serif";
+        ctx.fillText(`For ${cfg.recipientName || "You"}`, W / 2, 308);
+
+        ctx.fillStyle = "#654e4b";
+        ctx.font = "400 27px Georgia, serif";
+        ctx.fillText("Scan with your phone camera to unwrap", W / 2, 368);
+        ctx.fillText("your interactive memories & gold scratch-off gift!", W / 2, 406);
+
+        // Draw Crisp Scannable QR Code in Gold Frame
+        const qr = createQrInstance(url);
+        const modules = qr.getModuleCount();
+        const qrBoxSize = 470;
+        const qrX = Math.round((W - qrBoxSize) / 2);
+        const qrY = 458;
+
+        ctx.fillStyle = "#ffffff";
+        roundRect(ctx, qrX - 18, qrY - 18, qrBoxSize + 36, qrBoxSize + 36, 22);
+        ctx.fill();
+        ctx.strokeStyle = "#d9b15f";
+        ctx.lineWidth = 5;
+        roundRect(ctx, qrX - 18, qrY - 18, qrBoxSize + 36, qrBoxSize + 36, 22);
+        ctx.stroke();
+
+        const quiet = 3;
+        const cell = qrBoxSize / (modules + quiet * 2);
+        ctx.fillStyle = pal.qr;
+        for (let r = 0; r < modules; r++) {
+          for (let c = 0; c < modules; c++) {
+            if (qr.isDark(r, c)) {
+              const rx = Math.floor(qrX + (c + quiet) * cell);
+              const ry = Math.floor(qrY + (r + quiet) * cell);
+              const rw = Math.ceil(cell);
+              ctx.fillRect(rx, ry, rw, rw);
+            }
+          }
+        }
+
+        // Sender Signature & Short Link Footer
+        ctx.fillStyle = pal.accent;
+        ctx.font = "italic 700 34px Georgia, serif";
+        ctx.fillText(cfg.senderName ? `Sent with love from ${cfg.senderName} ♥` : "Merry Christmas ♥", W / 2, 1035);
+
+        ctx.fillStyle = "#7c655e";
+        ctx.font = "600 20px ui-monospace, monospace";
+        const displayUrl = url.length > 54 ? url.slice(0, 51) + "..." : url;
+        ctx.fillText(displayUrl.replace(/^https?:\/\//, ""), W / 2, 1110);
+      }
+
+      function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+      }
+
+      // Download Actions
+      function triggerDownload(blob, filename) {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          URL.revokeObjectURL(a.href);
+          a.remove();
+        }, 500);
+      }
+
+      function downloadCustomerHtml() {
+        const html = buildCustomerHtml();
+        const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+        triggerDownload(blob, "index.html");
+        showToast("Downloaded index.html! Upload to customer folder on GitHub.");
+      }
+
+      function copyTextWithFallback(text, successMsg) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => showToast(successMsg)).catch(() => fallbackCopy(text, successMsg));
+        } else {
+          fallbackCopy(text, successMsg);
+        }
+      }
+      function fallbackCopy(text, successMsg) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try { document.execCommand("copy"); showToast(successMsg); } catch (_) { showToast("Press & hold to copy"); }
+        ta.remove();
+      }
+      function copyCustomerHtml() {
+        const html = buildCustomerHtml();
+        copyTextWithFallback(html, "✅ Copied HTML! In GitHub tap Create new file → Paste!");
+      }
+      $("copyHtmlTopBtn").addEventListener("click", copyCustomerHtml);
+      $("copyHtmlStepBtn").addEventListener("click", copyCustomerHtml);
+      $("copyPathBtn").addEventListener("click", () => {
+        const folder = ($("ghFolder").value.trim() || "customer-card").replace(/^\/|\/$/g, "");
+        copyTextWithFallback(`${folder}/index.html`, `✅ Copied "${folder}/index.html"! Paste into GitHub filename box.`);
+      });
+      $("copyLiveUrlBtn").addEventListener("click", () => {
+        copyTextWithFallback(getCustomerUrl(), "✅ Copied Customer Live URL!");
+      });
+      $("downloadHtmlTopBtn").addEventListener("click", downloadCustomerHtml);
+      $("downloadHtmlBtn2").addEventListener("click", downloadCustomerHtml);
+
+      $("downloadQrSvgBtn").addEventListener("click", () => {
+        const svg = buildQrSvgMarkup(getCustomerUrl(), "#24060D");
+        const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+        const folder = ($("ghFolder").value.trim() || "customer").replace(/[^a-z0-9-_]/gi, "-");
+        triggerDownload(blob, `qr-${folder}.svg`);
+        showToast("Downloaded crisp Vector QR (.SVG) for Canva!");
+      });
+
+      $("downloadGiftPngBtn").addEventListener("click", () => {
+        renderQrAndGiftCard();
+        $("giftCardCanvas").toBlob((blob) => {
+          const folder = ($("ghFolder").value.trim() || "customer").replace(/[^a-z0-9-_]/gi, "-");
+          triggerDownload(blob, `christmas-qr-card-${folder}.png`);
+          showToast("Downloaded 1080×1350 Printable QR Gift Card (.PNG)!");
+        }, "image/png");
+      });
+
+      // Initial Boot
+      renderMemoriesEditor();
+      updatePreview();
+    })();
+  </script>
+</body>
+</html>
